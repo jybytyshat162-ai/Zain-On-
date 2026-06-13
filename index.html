@@ -1,124 +1,215 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>زين أون لاين</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>زين أون لاين</title>
 
-<link rel="stylesheet" href="style.css">
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
-
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
-
 <body>
 
-<section id="home" class="page active">
+    <!-- ================= قسم الصفحة الرئيسية ================= -->
+    <section id="home" class="page active">
+        <header class="top-bar">
+            <div class="search-container">
+                <input id="searchInp" type="text" placeholder="ابحث عن منتج...">
+                <div class="search-btn-icon">
+                    <span class="material-symbols-rounded">search</span>
+                </div>
+            </div>
+        </header>
 
-<header class="top-bar">
-<input id="searchInp" type="text" placeholder="ابحث عن منتج...">
-</header>
-
-<div class="category-row">
-<div class="cat active" data-cat="الكل">الكل</div>
-<div class="cat" data-cat="اكسسوارات سيارات">سيارات</div>
-<div class="cat" data-cat="اكسسوارات دراجات">دراجات</div>
-<div class="cat" data-cat="إضاءة">إضاءة</div>
-<div class="cat" data-cat="زيوت">زيوت</div>
-</div>
-
-<div class="products-section">
-<h3 id="sectionTitle">أحدث المنتجات المتاحة</h3>
-
-<div class="products-row" id="productsGrid">
-    <p style="text-align:center; width:100%; color:#888; padding:20px;">جاري تحميل معروضات المتجر... 🔥</p>
-</div>
-</div>
-
-</section>
-
-<section id="details" class="page">
-<div class="slider" id="detailsSlider">
-    <div class="slide" id="slide1"></div>
-    <div class="slide" id="slide2"></div>
-    <div class="slide" id="slide3"></div>
-</div>
-
-<div class="details-card">
-<h2 id="detName">اسم المنتج</h2>
-<p class="price" id="detPrice">0 ريال يمني</p>
-
-<p class="desc" id="detDesc">
-وصف المنتج يظهر هنا بشكل احترافي
-</p>
-
-<div class="qty">
-<button id="minusQty">-</button>
-<span id="qtyVal">1</span>
-<button id="plusQty">+</button>
-</div>
-
-<button class="btn" id="addToCartBtn">إضافة إلى العربة</button>
-</div>
-</section>
-
-<section id="cart" class="page">
-<div class="card">
-<h3>سلة المشتريات</h3>
-
-<div id="cartItemsContainer">
-    <p style="text-align:center; color:#888;">العربة فارغة حالياً</p>
-</div>
-
-<h3 class="total" id="cartTotal">الإجمالي: 0 ريال</h3>
-<button class="btn" id="checkoutBtn">الدفع</button>
-
-<div id="gatewaysBox" class="gateways-box">
-    <h4>اختر طريقة الدفع المناسبة لك:</h4>
-    <div id="paymentOptionsContainer">
+        <div class="category-wrapper">
+            <div class="category-row">
+                <div class="cat active" data-cat="الكل">الكل</div>
+                <div class="cat" data-cat="اكسسوارات سيارات">سيارات</div>
+                <div class="cat" data-cat="اكسسوارات دراجات">دراجات</div>
+                <div class="cat" data-cat="إضاءة">إضاءة</div>
+                <div class="cat" data-cat="زيوت">زيوت</div>
+            </div>
         </div>
 
-    <div id="paymentActionArea" class="payment-action-area">
-        <p>رقم الحساب: <strong id="displayAccNum">---</strong> <button id="copyAccBtn" class="copy-btn">نسخ الرقم</button></p>
-        
-        <p class="warning-text" id="depositNotice">يرجى إيداع المبلغ وقدره 0 ريال يمني صافي وإلا سيتم رفض الطلب.</p>
-        
-        <button id="sendInvoiceBtn" class="btn" style="margin-top:15px; background:#2ecc71;">تأكيد الدفع وبدء المحادثة الفورية</button>
-    </div>
-</div>
-</div>
-</section>
+        <!-- الحاوية الرئيسية للأقسام المتعددة للزبون -->
+        <div class="products-section" id="mainProductsContainer">
+            <p style="text-align:center; width:100%; color:#888; padding:40px;">جاري تحميل....�</p>
+        </div>
+    </section>
 
-<!-- قسم قائمة المحادثات الواردة للزبون -->
-<section id="chat" class="page">
-<div class="card">
-    <h3 style="margin-bottom: 20px; text-align: center; color: #333;">صندوق الرسائل والدردشة</h3>
-    
-    <!-- حاوية قائمة المحادثات المماثلة للوحة المدير -->
-    <div id="customerChatListContainer">
-        <p style="text-align:center; color:#888; padding:20px;">جاري فحص صندوق الرسائل... 🔄</p>
-    </div>
-</div>
-</section>
+    <!-- ================= قسم تفاصيل المنتج ================= -->
+    <section id="details" class="page">
+        <div class="slider-container">
+            <div class="slider" id="detailsSlider">
+                <div class="slide" id="slide1"></div>
+                <div class="slide" id="slide2"></div>
+                <div class="slide" id="slide3"></div>
+            </div>
+        </div>
 
+        <div class="details-card">
+            <h2 id="detName">اسم المنتج</h2>
+            <p class="price" id="detPrice">0 ريال يمني</p>
+            <p id="detStock" style="color: #e67e22; font-weight: bold; font-size: 14px; margin-bottom: 10px;">الكمية المتوفرة: جاري الفحص...</p>
 
-<nav class="bottom-nav">
-<button class="nav-btn active" data-page="home">
-<span class="material-symbols-rounded">home</span>
-<span>الرئيسية</span>
-</button>
+            <p class="desc" id="detDesc">
+                وصف المنتج يظهر هنا بشكل احترافي
+            </p>
 
-<button class="nav-btn" data-page="chat">
-<span class="material-symbols-rounded">chat</span>
-<span>الدردشة</span>
-</button>
+            <div class="qty">
+                <button id="minusQty">-</button>
+                <span id="qtyVal">1</span>
+                <button id="plusQty">+</button>
+            </div>
 
-<button class="nav-btn" data-page="cart">
-<span class="material-symbols-rounded">shopping_cart</span>
-<span>العربة</span>
-</button>
-</nav>
+            <button class="btn" id="addToCartBtn">إضافة إلى العربة</button>
+        </div>
+    </section>
 
-<script type="module" src="script.js"></script>
+    <!-- ================= قسم عربة التسوق ================= -->
+    <section id="cart" class="page">
+        <!-- شريط ترويج الشحن والمميزات العلوي -->
+        <div class="alibaba-shipping-ticker">
+            <div class="ticker-content">
+                <span class="material-symbols-rounded ticker-icon">local_shipping</span>
+                <p>شحن سريع وآمن لجميع المحافظات اليمنية وبأقل الأسعار الممكنة!</p>
+            </div>
+        </div>
+
+        <!-- الحاوية الرئيسية المحسنة لعناصر السلة -->
+        <div class="cart-main-container">
+            <!-- حالة السلة الفارغة الافتراضية -->
+            <div id="cartItemsContainer">
+                <div class="empty-cart-view">
+                    <span class="material-symbols-rounded empty-cart-icon">inventory_2</span>
+                    <h4>عربة تسوقك فارغة</h4>
+                    <p>تصفح الأقسام والمنتجات الآن وأضف ما تحتاجه إلى سلتك</p>
+                </div>
+            </div>
+
+            <!-- بطاقة حماية الطلبات والميزات الضامنة -->
+            <div class="alibaba-protection-card">
+                <div class="protection-title">
+                    <span class="material-symbols-rounded shield-active">verified_user</span>
+                    <strong>حماية الطلبات والمعاملات من Zain Online</strong>
+                    <span class="material-symbols-rounded arrow-left">chevron_left</span>
+                </div>
+                <p class="protection-subtitle">الطلبات والدفعات التي تتم داخل المنصة تحظى بحماية وأمان فائق لضمان حقوقك.</p>
+                
+                <div class="protection-features-grid">
+                    <div class="p-feature-item">
+                        <span class="material-symbols-rounded p-icon">gpp_good</span>
+                        <h6>مدفوعات آمنة</h6>
+                    </div>
+                    <div class="p-feature-item">
+                        <span class="material-symbols-rounded p-icon">local_shipping</span>
+                        <h6>توصيل مضمون</h6>
+                    </div>
+                    <div class="p-feature-item">
+                        <span class="material-symbols-rounded p-icon">assignment_return</span>
+                        <h6>حماية واسترداد</h6>
+                    </div>
+                    <div class="p-feature-item">
+                        <span class="material-symbols-rounded p-icon">support_agent</span>
+                        <h6>دعم 24/7</h6>
+                    </div>
+                </div>
+            </div>
+
+            <!-- صندوق بوابات الدفع المحلية عند تفعيله -->
+            <div id="gatewaysBox" class="gateways-box-premium" style="display: none;">
+                <div class="gateway-header">
+                    <span class="material-symbols-rounded">account_balance_wallet</span>
+                    <h4>اختر طريقة الدفع المحلية المناسبة:</h4>
+                </div>
+                <div id="paymentOptionsContainer"></div>
+
+                <div id="paymentActionArea" class="payment-action-area-premium" style="display: none;">
+                    <div class="acc-info-row">
+                        <p>رقم الحساب المعتمد للأداة:</p>
+                        <div class="acc-badge">
+                            <strong id="displayAccNum">---</strong>
+                            <button id="copyAccBtn" class="premium-copy-btn">
+                                <span class="material-symbols-rounded">content_copy</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <p class="warning-text-premium" id="depositNotice">يرجى إيداع المبلغ الصافي وإلا سيتم رفض الطلب تلقائياً من النظام.</p>
+                    
+                    <button id="sendInvoiceBtn" class="btn-confirm-payment">
+                        <span class="material-symbols-rounded">chat</span>
+                        تأكيد إرسال الإشعار وبدء المحادثة
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- شريط الإجمالي والدفع العائم ذكي أسفل الشاشة -->
+        <div class="alibaba-bottom-checkout-bar">
+            <div class="checkout-bar-inner">
+                <div class="select-all-area">
+                    <div class="custom-checkbox-mock active"></div>
+                    <span>الكل</span>
+                </div>
+                
+                <div class="total-price-display">
+                    <span class="currency-label">YER</span>
+                    <span class="total-amount-number" id="cartTotal">0</span>
+                </div>
+                
+                <button class="alibaba-action-pay-btn" id="checkoutBtn">
+                    <span>الانتقال للدفع</span>
+                    <span class="material-symbols-rounded">arrow_forward</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= قسم قائمة الرسائل والدردشة الواردة ================= -->
+    <section id="chat" class="page">
+        <div class="chat-premium-wrapper">
+            <!-- شريط التحكم العلوي للمحادثات -->
+            <div class="chat-control-actions">
+                <div class="chat-title-area">
+                    <span class="material-symbols-rounded chat-main-icon">forum</span>
+                    <h3>صندوق الرسائل والدردشة</h3>
+                </div>
+                
+                <div class="chat-action-buttons">
+                    <button class="chat-action-btn read-all" title="تحديد الكل كمقروء" id="markAllReadBtn">
+                        <span class="material-symbols-rounded">done_all</span>
+                        <span>قراءة الكل</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- حاوية القائمة الرئيسية الحية للمحادثات الواردة للزبون -->
+            <div class="chat-list-container" id="customerChatListContainer">
+                <p style="text-align:center; color:#888; padding:20px;">جاري تحميل....�<</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ================= شريط التنقل السفلي الثابت ================= -->
+    <nav class="bottom-nav">
+        <button class="nav-btn active" data-page="home">
+            <span class="material-symbols-rounded">home</span>
+            <span>الرئيسية</span>
+        </button>
+
+        <button class="nav-btn" data-page="chat">
+            <span class="material-symbols-rounded">chat</span>
+            <span>الدردشة</span>
+        </button>
+
+        <button class="nav-btn" data-page="cart">
+            <span class="material-symbols-rounded">shopping_cart</span>
+            <span>العربة</span>
+        </button>
+    </nav>
+
+    <script type="module" src="script.js"></script>
 </body>
 </html>

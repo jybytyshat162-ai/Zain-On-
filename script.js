@@ -1,8 +1,7 @@
-// 1. استيراد دوال الفايربيز الأساسية للمتجر
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, get, set, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, get, set, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// 2. إعدادات ومفاتيح الربط الخاصة بقاعدتك المفتوحة لـ "زين أون لاين"
+// إعدادات ومفاتيح الربط الخاصة بقاعدتك المفتوحة لـ "زين أون لاين"
 const firebaseConfig = {
     apiKey: "AIzaSyAUmiSv1NdOWCZhJCGab6in028MPhNjFgE",
     authDomain: "zain-online-938c5.firebaseapp.com",
@@ -21,7 +20,13 @@ const db = getDatabase(app);
 let allProducts = []; // مخزن المنتجات محلياً للبحث والتصفية
 let currentCart = []; // مصفوفة السلة
 let globalTotalSum = 0; // إجمالي السلة الفعلي الحالي
-let loadedPayments = []; // تخزين طرق الدفع المجلوبة
+
+// توليد أو جلب معرف فريد وثابت لمتصفح الزبون الحالي
+let myUserId = localStorage.getItem("zain_user_id");
+if (!myUserId) {
+    myUserId = "user_" + Math.random().toString(36).substring(2, 11);
+    localStorage.setItem("zain_user_id", myUserId);
+}
 
 // ================= نظام تسجيل وزيادة عدد الزوار تلقائياً =================
 function handleVisitorCount() {
@@ -34,7 +39,7 @@ function handleVisitorCount() {
         set(visitorsRef, currentCount + 1);
     }).catch(err => console.log("خطأ في عداد الزوار"));
 }
-handleVisitorCount(); // تشغيل الدالة فور دخول الزبون
+handleVisitorCount();
 
 // ================= نظام التنقل الفوري بين الصفحات =================
 const buttons = document.querySelectorAll(".nav-btn");
@@ -52,15 +57,15 @@ buttons.forEach(btn => {
 });
 
 // ================= جلب البيانات الحية والمباشرة من فايربيز =================
-const productsGrid = document.getElementById("productsGrid");
+const mainProductsContainer = document.getElementById("mainProductsContainer");
 
 const dbProductsRef = ref(db, 'products');
 onValue(dbProductsRef, (snapshot) => {
-    productsGrid.innerHTML = "";
+    if (mainProductsContainer) mainProductsContainer.innerHTML = "";
     allProducts = [];
     
     if (!snapshot.exists()) {
-        productsGrid.innerHTML = '<p style="text-align:center; width:100%; color:#888;">انتظرونا، سيتم توفير المنتجات قريباً جداً في المتجر! 🛒</p>';
+        if (mainProductsContainer) mainProductsContainer.innerHTML = '<p style="text-align:center; width:100%; color:#888; padding:40px;">انتظرونا، سيتم توفير المنتجات قريباً جداً في المتجر! 🛒</p>';
         return;
     }
     
@@ -70,37 +75,68 @@ onValue(dbProductsRef, (snapshot) => {
         allProducts.push(item);
     });
     
-    renderProducts(allProducts); // عرض كل المنتجات عند الففتح
+    renderProducts(allProducts);
 });
 
-// دالة رسم كروت المنتجات على الشاشة للزبون
+// ===== دالة رسم المنتجات مقسمة بحسب التصنيف والزيوت في صفوف أفقية فخمة =====
 function renderProducts(array) {
-    productsGrid.innerHTML = "";
-    if(array.length === 0) {
-        productsGrid.innerHTML = '<p style="text-align:center; width:100%; color:#888;">عذراً، لم نجد نتائج تطابق بحثك.</p>';
+    if (!mainProductsContainer) return;
+    mainProductsContainer.innerHTML = "";
+    
+    if (array.length === 0) {
+        mainProductsContainer.innerHTML = '<p style="text-align:center; width:100%; color:#888; padding:20px;">عذراً، لم نجد نتائج تطابق بحثك.</p>';
         return;
     }
-    
+
+    // تجميع المنتجات بناءً على أقسامها تلقائياً
+    const categoriesMap = {};
     array.forEach(product => {
-        const prodDiv = document.createElement("div");
-        prodDiv.className = "product";
-        
-        // استخدام الصورة الأولى المرفوعة أو صورة نصوص افتراضية أنيقة
-        const bgImg = product.image1 ? product.image1 : "https://placehold.co/150?text=Zain+Online";
-        
-        prodDiv.innerHTML = `
-            <div class="img" style="background-image: url('${bgImg}'); background-size: cover; background-position: center;"></div>
-            <p>${product.name}</p>
-            <span>${product.price} ريال</span>
-        `;
-        
-        // عند ضغط الزبون على الكرت ينقلنا فوراً لصفحة تفاصيل المنتج
-        prodDiv.addEventListener("click", () => {
-            showProductDetails(product);
-        });
-        
-        productsGrid.appendChild(prodDiv);
+        const catName = product.category || "أخرى";
+        if (!categoriesMap[catName]) {
+            categoriesMap[catName] = [];
+        }
+        categoriesMap[catName].push(product);
     });
+
+    // بناء الهيكل لكل قسم
+    for (let catName in categoriesMap) {
+        const sectionBlock = document.createElement("div");
+        sectionBlock.className = "category-section-block";
+        sectionBlock.style.marginBottom = "20px";
+
+        const sectionHeader = document.createElement("div");
+        sectionHeader.className = "section-header";
+        sectionHeader.innerHTML = `<h3>${catName}</h3>`;
+
+        const productsGrid = document.createElement("div");
+        productsGrid.className = "products-grid";
+
+        categoriesMap[catName].forEach(product => {
+            const prodDiv = document.createElement("div");
+            prodDiv.className = "product";
+            
+            const bgImg = product.image1 ? product.image1 : "https://placehold.co/150?text=Zain+Online";
+            
+            prodDiv.innerHTML = `
+                <div class="img" style="background-image: url('${bgImg}'); background-size: cover; background-position: center;"></div>
+                <p>${product.name}</p>
+                <div class="product-meta">
+                    <span>${product.price} ريال</span>
+                    <div class="product-label">جديد</div>
+                </div>
+            `;
+            
+            prodDiv.addEventListener("click", () => {
+                showProductDetails(product);
+            });
+            
+            productsGrid.appendChild(prodDiv);
+        });
+
+        sectionBlock.appendChild(sectionHeader);
+        sectionBlock.appendChild(productsGrid);
+        mainProductsContainer.appendChild(sectionBlock);
+    }
 }
 
 // ================= صفحة تفاصيل المنتج وعرض السلايدر =================
@@ -112,21 +148,20 @@ function showProductDetails(product) {
     currentQty = 1;
     document.getElementById("qtyVal").innerText = currentQty;
     
-    // إخفاء كل الصفحات وتفعيل صفحة الـ details
     pages.forEach(p => p.classList.remove("active"));
     document.getElementById("details").classList.add("active");
     
-    // تعبئة نصوص المنتج
     document.getElementById("detName").innerText = product.name;
     document.getElementById("detPrice").innerText = product.price + " ريال يمني";
     document.getElementById("detDesc").innerText = product.description || "لا يوجد وصف متوفر لهذا المنتج حالياً.";
     
-    // إدخال الصور الثلاث للسلايدر
+    const availableStock = product.quantity !== undefined ? product.quantity : 0;
+    document.getElementById("detStock").innerText = `الكمية المتبقية في المخزن: ${availableStock} كرتون`;
+    
     document.getElementById("slide1").style.backgroundImage = `url('${product.image1 || 'https://placehold.co/150?text=Image+1'}')`;
     document.getElementById("slide2").style.backgroundImage = `url('${product.image2 || 'https://placehold.co/150?text=Image+2'}')`;
     document.getElementById("slide3").style.backgroundImage = `url('${product.image3 || 'https://placehold.co/150?text=Image+3'}')`;
     
-    // إعدادات الخلفية لتظهر بشكل ممتاز
     document.querySelectorAll(".slide").forEach(s => {
         s.style.backgroundSize = "cover";
         s.style.backgroundPosition = "center";
@@ -146,65 +181,88 @@ document.getElementById("minusQty").addEventListener("click", () => {
     }
 });
 
-// ================= نظام السلة التلقائي (Cart System) =================
+// ================= نظام السلة مع التحقق الصارم من كمية المخزن المتوفرة =================
 document.getElementById("addToCartBtn").addEventListener("click", () => {
     if(!selectedProduct) return;
     
-    const cartItem = {
-        id: selectedProduct.id,
-        name: selectedProduct.name,
-        price: Number(selectedProduct.price),
-        qty: currentQty
-    };
+    const freshProductRef = ref(db, `products/${selectedProduct.id}`);
     
-    // إضافة المنتج للسلة وتحديث الواجهة
-    currentCart.push(cartItem);
-    updateCartUI();
-    
-    alert(`تم إضافة ${currentQty} من [${selectedProduct.name}] بنجاح إلى العربة! 🛒`);
-    
-    // العودة للرئيسية بعد الإضافة
-    buttons.forEach(b => b.classList.remove("active"));
-    pages.forEach(p => p.classList.remove("active"));
-    document.querySelector('[data-page="home"]').classList.add("active");
-    document.getElementById("home").classList.add("active");
+    get(freshProductRef).then((snapshot) => {
+        let dbQuantity = 0;
+        if (snapshot.exists() && snapshot.val().quantity !== undefined) {
+            dbQuantity = Number(snapshot.val().quantity);
+        }
+
+        if (dbQuantity <= 0) {
+            alert("عذراً، هذا المنتج نفذ تماماً من المخزن حالياً! ❌");
+            return;
+        }
+        
+        if (currentQty > dbQuantity) {
+            alert(`عذراً! الكمية المتبقية في المخزن فقط هي: ${dbQuantity} كرتون.`);
+            return;
+        }
+
+        const cartItem = {
+            id: selectedProduct.id,
+            name: selectedProduct.name,
+            price: Number(selectedProduct.price),
+            qty: currentQty
+        };
+        
+        currentCart.push(cartItem);
+        updateCartUI();
+        
+        alert(`تم إضافة ${currentQty} من [${selectedProduct.name}] بنجاح إلى العربة! 🛒`);
+        
+        buttons.forEach(b => b.classList.remove("active"));
+        pages.forEach(p => p.classList.remove("active"));
+        document.querySelector('[data-page="home"]').classList.add("active");
+        document.getElementById("home").classList.add("active");
+        
+    }).catch(err => {
+        alert("خطأ في الاتصال بالشبكة للتحقق من الكمية: " + err.message);
+    });
 });
 
 function updateCartUI() {
     const container = document.getElementById("cartItemsContainer");
     const totalEl = document.getElementById("cartTotal");
+    if (!container || !totalEl) return;
     container.innerHTML = "";
     
     if(currentCart.length === 0) {
-        container.innerHTML = '<p style="text-align:center; color:#888;">العربة فارغة حالياً</p>';
-        totalEl.innerText = "الإجمالي: 0 ريال";
+        container.innerHTML = `
+            <div class="empty-cart-view">
+                <span class="material-symbols-rounded empty-cart-icon">inventory_2</span>
+                <h4>عربة تسوقك فارغة</h4>
+                <p>تصفح الأقسام والمنتجات الآن وأضف ما تحتاجه إلى سلتك</p>
+            </div>
+        `;
+        totalEl.innerText = "0";
         globalTotalSum = 0;
         document.getElementById("gatewaysBox").style.display = "none";
         return;
     }
     
     let totalSum = 0;
-    currentCart.forEach((item, index) => {
+    currentCart.forEach((item) => {
         const itemCost = item.price * item.qty;
         totalSum += itemCost;
         
         const div = document.createElement("div");
         div.className = "cart-item";
-        div.style.display = "flex";
-        div.style.justifyContent = "space-between";
-        div.style.marginBottom = "10px";
-        div.style.borderBottom = "1px dashed #ddd";
-        div.style.paddingBottom = "5px";
+        div.style.cssText = "display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px dashed #ddd; padding-bottom: 8px; direction: rtl; padding: 10px;";
         
         div.innerHTML = `
-            <p><strong>${item.name}</strong> (×${item.qty})</p>
-            <span>${itemCost} ريال</span>
+            <p style="margin:0; font-size:14px;"><strong>${item.name}</strong> (×${item.qty})</p>
+            <span style="color:#FF6600; font-weight:bold;">${itemCost} ريال</span>
         `;
         container.appendChild(div);
     });
     
     globalTotalSum = totalSum;
-    totalEl.innerText = `الإجمالي: ${totalSum} ريال يمني`;
+    totalEl.innerText = totalSum;
 }
 
 // ================= نظام معالجة وعرض بوابات الدفع المحلية للزبائن =================
@@ -218,64 +276,52 @@ if(checkoutBtn) {
             alert("سلتك فارغة! يرجى إضافة منتجات أولاً قبل إتمام الدفع.");
             return;
         }
-        // إظهار صندوق بوابات الدفع وجلب البيانات حياً من السيرفر
         gatewaysBox.style.display = "block";
         fetchGatewaysData();
     });
 }
 
 function fetchGatewaysData() {
-    paymentOptionsContainer.innerHTML = '<p style="font-size:12px; color:#888;">جاري جلب طرق الدفع المتاحة...</p>';
-    const dbPaymentsRef = ref(db, 'payments');
+    if (!paymentOptionsContainer) return;
+    paymentOptionsContainer.innerHTML = '<p style="font-size:12px; color:#888; padding: 10px;">جاري جلب طرق الدفع المتاحة...</p>';
     
-    onValue(dbPaymentsRef, (snapshot) => {
+    const dbPaymentsRef = ref(db, 'payments');
+    get(dbPaymentsRef).then((snapshot) => {
         paymentOptionsContainer.innerHTML = "";
-        loadedPayments = [];
-        
-        if (!snapshot.exists()) {
-            paymentOptionsContainer.innerHTML = '<p style="font-size:12px; color:#dc3545;">عذراً، لم يقم الإدمن بتفعيل طرق دفع محلية حالياً.</p>';
+        if(!snapshot.exists()) {
+            paymentOptionsContainer.innerHTML = '<p style="font-size:12px; color:red; padding: 10px;">لا تتوفر حسابات دفع حالياً، تواصل مع الدعم.</p>';
             return;
         }
         
         snapshot.forEach((childSnapshot) => {
-            const payId = childSnapshot.key;
-            const payData = childSnapshot.val();
-            payData.id = payId;
-            loadedPayments.push(payData);
+            const gateway = childSnapshot.val();
+            const btn = document.createElement("button");
+            btn.className = "gateway-btn";
+            btn.style.cssText = "display:block; width:100%; padding:10px; margin-bottom:5px; background:#fff; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-family:'Cairo'; font-size:13px; text-align:right;";
+            btn.innerText = `${gateway.name} - (لحساب: ${gateway.owner || 'الإدارة'})`;
             
-            const optDiv = document.createElement("div");
-            optDiv.className = "pay-opt";
-            optDiv.innerHTML = `
-                <img src="${payData.logo}" alt="logo">
-                <h4>${payData.name}</h4>
-            `;
-            
-            // عند الضغط على أي طريقة دفع معينة
-            optDiv.addEventListener("click", () => {
-                showPaymentActionArea(payData);
+            btn.addEventListener("click", () => {
+                showPaymentActionArea(gateway);
             });
-            
-            paymentOptionsContainer.appendChild(optDiv);
+            paymentOptionsContainer.appendChild(btn);
         });
+    }).catch(() => {
+        paymentOptionsContainer.innerHTML = '<p style="font-size:12px; color:red;">حدث خطأ أثناء تحميل الحسابات.</p>';
     });
 }
 
-// إظهار بيانات الحساب المختار مع كود النسخ وزر الإرسال والتعميم المالي
 const paymentActionArea = document.getElementById("paymentActionArea");
 const displayAccNum = document.getElementById("displayAccNum");
 const depositNotice = document.getElementById("depositNotice");
 let activeAccountNumber = "";
 
 function showPaymentActionArea(gateway) {
-    paymentActionArea.style.display = "block";
-    displayAccNum.innerText = gateway.number;
+    if (paymentActionArea) paymentActionArea.style.display = "block";
+    if (displayAccNum) displayAccNum.innerText = gateway.number;
     activeAccountNumber = gateway.number;
-    
-    // إدراج وحساب التعميم الديناميكي لقيمة السلة الإجمالية الحالية صافي
-    depositNotice.innerText = `يرجى إيداع المبلغ وقدره ${globalTotalSum} ريال يمني صافي وإلا سيتم رفض الطلب.`;
+    if (depositNotice) depositNotice.innerText = `يرجى إيداع المبلغ وقدره ${globalTotalSum} ريال يمني صافي وإلا سيتم رفض الطلب تلقائياً من النظام.`;
 }
 
-// برمجة زر نسخ الحساب بضغطة واحدة
 const copyAccBtn = document.getElementById("copyAccBtn");
 if(copyAccBtn) {
     copyAccBtn.addEventListener("click", () => {
@@ -288,61 +334,109 @@ if(copyAccBtn) {
     });
 }
 
-// ================= تم التعديل هنا: الفتح المباشر والديناميكي الفوري وتخطي فحص الصورة نهائياً =================
-// ================= إرسال تفاصيل الطلب تلقائياً إلى المحادثة وبدء الدردشة =================
-// ================= إرسال تفاصيل الطلب تلقائياً إلى المحادثة وبدء الدردشة =================
-// توليد أو جلب معرف فريد وثابت لمتصفح الزبون الحالي للحفاظ على غرفته الإخبارية
-let myUserId = localStorage.getItem("zain_user_id");
-if (!myUserId) {
-    myUserId = "user_" + Math.random().toString(36).substring(2, 11);
-    localStorage.setItem("zain_user_id", myUserId);
-}
-
+// إرسال تفاصيل الطلب وتحديث المخزن والتوجه لصفحة index2.html مباشرة مع إشعار تليجرام
 const sendInvoiceBtn = document.getElementById("sendInvoiceBtn");
 if(sendInvoiceBtn) {
-    sendInvoiceBtn.addEventListener("click", () => {
-        // 1. التحقق من وجود منتجات في السلة أولاً
+    sendInvoiceBtn.addEventListener("click", async () => {
         if (currentCart.length === 0) {
-            alert("عذراً، السلة فارغة حالياً ولا يوجد طلب لإرساله.");
+            alert("عذراً، السلة فارغة حالياً.");
             return;
         }
 
-        // 2. تجميع وتنسيق نص الطلب بشكل مرتب ومفهوم للإدارة
-        let orderDetailsMessage = "طلب جديد من المتجر 🛒:\n";
-        orderDetailsMessage += "-------------------------\n";
-        
-        currentCart.forEach((item, index) => {
-            orderDetailsMessage += `${index + 1}. المنتج: ${item.name}\n`;
-            orderDetailsMessage += `   الكمية: ${item.qty}\n`;
-            orderDetailsMessage += `   السعر الفردي: ${item.price} ريال\n`;
-            orderDetailsMessage += "-------------------------\n";
-        });
-        
-        orderDetailsMessage += `💰 إجمالي الحساب الصافي: ${globalTotalSum} ريال يمني.`;
+        const orderNumber = "99" + Math.floor(1000000 + Math.random() * 9000000);
 
-        // 3. إرسال الرسالة إلى مسار العميل الفرعي لكي تفهمه لوحة التحكم
+        let userLocation = prompt("يرجى كتابة عنوانك بالتفصيل أو الضغط على 'موافق' لجلب موقعك تلقائياً:", "جاري محاولة تحديد الموقع...");
+        if (!userLocation || userLocation === "جاري محاولة تحديد الموقع...") {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                userLocation = `موقع جغرافي (خط طول: ${position.coords.longitude}, خط عرض: ${position.coords.latitude})`;
+            } catch (err) {
+                userLocation = "لم يتم تحديد الموقع (العميل لم يسمح بالوصول)";
+            }
+        }
+
+        let orderDetailsMessage = `🛍️ طلب جديد #${orderNumber}\n`;
+        orderDetailsMessage += `📍 العنوان: ${userLocation}\n`;
+        orderDetailsMessage += "-------------------------\n";
+        currentCart.forEach((item, index) => {
+            orderDetailsMessage += `${index + 1}. ${item.name} (x${item.qty}) - ${item.price * item.qty} ريال\n`;
+        });
+        orderDetailsMessage += `-------------------------\n💰 الإجمالي الصافي: ${globalTotalSum} ريال يمني.\n⚠️ حالة الطلب: قيد الانتظار...`;
+
+        // --- تحديث الكميات المتبقية في المخزن داخل قاعدة البيانات فور الشراء ---
+        for (const item of currentCart) {
+            const prodStockRef = ref(db, `products/${item.id}/quantity`);
+            try {
+                const stockSnapshot = await get(prodStockRef);
+                if (stockSnapshot.exists()) {
+                    let currentStock = Number(stockSnapshot.val());
+                    let newStock = currentStock - item.qty;
+                    if (newStock < 0) newStock = 0;
+                    await set(prodStockRef, newStock);
+                }
+            } catch (stockErr) {
+                console.log("خطأ أثناء تحديث كمية المنتج: " + item.name, stockErr);
+            }
+        }
+
+        const orderRef = ref(db, `orders/${myUserId}`);
         const clientChatRef = ref(db, `chats/${myUserId}`); 
-        const newMessageRef = push(clientChatRef); // إنشاء معرف فريد للرسالة بداخل غرفة العميل
-        
-        set(newMessageRef, {
+        const newMessageRef = push(clientChatRef);
+        const chatMsgKey = newMessageRef.key;
+
+        await set(orderRef, {
+            orderNumber: orderNumber,
+            status: "pending",
+            chatKey: chatMsgKey,
+            timestamp: Date.now(),
+            orderDetails: orderDetailsMessage
+        });
+
+        await set(newMessageRef, {
             sender: "client",                      
             message: orderDetailsMessage,          
             timestamp: Date.now(),
-            status: "sent"
-        }).then(() => {
-            // 4. التنبيه والتحويل لصفحة الدردشة مع تمرير الـ userId الخاص بالزبون لفتح نفس الغرفة
-            alert("تم إرسال تفاصيل طلبك تلقائياً إلى الدعم الفني! جاري فتح المحادثة... 🚀");
-            window.location.href = `index2.html?userId=${myUserId}`;
-        }).catch((error) => {
-            console.error("خطأ أثناء إرسال الطلب للمحادثة:", error);
-            window.location.href = `index2.html?userId=${myUserId}`;
+            status: "sent",
+            isOrder: true,
+            orderNumber: orderNumber
         });
+
+        // 🚀 ================= نظام إرسال الإشعارات التلقائية لبوت تليجرام =================
+        const TELEGRAM_BOT_TOKEN = "8747928905:AAFLOdricrqu1l2g6is7xxVpJpfhju6UZbA"; 
+        const TELEGRAM_CHAT_IDS = ["8516702571", "1652651450"]; // مصفوفة المعرفات الخاصة بك وبشريكك
+        
+        let telegramText = `🔔 إشعار طلب جديد من متجر زين أون لاين!\n\n${orderDetailsMessage}\n\n🔗 لمتابعة المحادثة مع العميل سرياً:\nhttps://zain-online-938c5.firebaseapp.com/admin/chat.html?userId=${myUserId}`;
+
+        // إرسال الرسالة لكل معرّف تلقائياً
+        TELEGRAM_CHAT_IDS.forEach(chatId => {
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    chat_id: chatId,
+                    text: telegramText
+                })
+            }).then(() => {
+                console.log(`تم إرسال التنبيه بنجاح للمعرف: ${chatId}`);
+            }).catch(err => {
+                console.log(`فشل الإرسال للمعرف ${chatId}: `, err);
+            });
+        });
+        // ====================================================================
+
+        currentCart = [];
+        updateCartUI();
+
+        alert(`تم إرسال طلبك رقم (${orderNumber}) بنجاح! جاري توجيهك لقسم المحادثات الحية...`);
+        window.location.href = `index2.html?tab=chat`; 
     });
 }
 
-
-
-// ================= التصفية بحسب التصنيفات والأصناف =================
+// التصفية بحسب التصنيفات والأصناف عند النقر على الأزرار العلوية
 const categories = document.querySelectorAll(".category-row .cat");
 categories.forEach(cat => {
     cat.addEventListener("click", function() {
@@ -350,7 +444,6 @@ categories.forEach(cat => {
         this.classList.add("active");
         
         const targetCat = this.getAttribute("data-cat");
-        document.getElementById("sectionTitle").innerText = targetCat === "الكل" ? "أحدث المنتجات المتاحة" : targetCat;
         
         if(targetCat === "الكل") {
             renderProducts(allProducts);
@@ -361,7 +454,7 @@ categories.forEach(cat => {
     });
 });
 
-// ================= ميزة البحث العلوي للزبون =================
+// ميزة البحث العلوي للزبون
 const searchInp = document.getElementById("searchInp");
 if(searchInp) {
     searchInp.addEventListener("input", function() {
@@ -371,117 +464,97 @@ if(searchInp) {
     });
 }
 
-
-
-
-
-
-// ================= نظام مراقبة وقراءة التنبيهات في صندوق رسائل الزبون =================
+// ================= نظام مراقبة وعرض صندوق الرسائل الفخم والحي للزبون =================
 const customerChatListContainer = document.getElementById("customerChatListContainer");
-
 if (customerChatListContainer) {
-    // تحديد مسار دردشة العميل الحالي بداخل الفايربيز
     const myLiveChatRef = ref(db, `chats/${myUserId}`);
 
-    // الاستماع الحي والمباشر للتغيرات والرسائل القادمة من الإدارة
     onValue(myLiveChatRef, (snapshot) => {
         customerChatListContainer.innerHTML = "";
         
         let unreadCount = 0;
-        let lastMessageText = "لا توجد رسائل سابقة بينك وبين الدعم الفني.";
-        let hasChat = false;
+        let lastMessageText = "مرحباً بك في متجرنا! راسلنا هنا في حال وجود أي استفسار لبدء المحادثة الفورية... ✨";
+        let timeStampText = "الآن";
 
         if (snapshot.exists()) {
-            hasChat = true;
             snapshot.forEach((childSnapshot) => {
                 const msgData = childSnapshot.val();
-                
-                // إذا كانت الرسالة قادمة من الإدارة (admin) ولم يتم قراءتها (مثلاً status ليس read)
                 if (msgData.sender === "admin" && msgData.status !== "read") {
                     unreadCount++;
                 }
-                
-                // جلب نص آخر رسالة لعرضها كمظهر احترافي
                 if (msgData.message) {
                     lastMessageText = msgData.message;
                 }
             });
         }
 
-        // إنشاء كرت المحادثة الخاص بالشركة والدعم الفني ليظهر بداخل القائمة
-        const chatItemDiv = document.createElement("div");
-        chatItemDiv.className = "user-chat-item"; // يمكنك التحكم بتصميمه في ملف الـ CSS
+        let shortMessage = lastMessageText.length > 50 ? lastMessageText.substring(0, 50) + "..." : lastMessageText;
+
+        const chatCard = document.createElement("div");
+        chatCard.className = "premium-chat-card pinned"; 
         
-        // تجهيز ستايل أنيق وفخم للكرت متناسق مع هوية متجرك بلون خلفية برتقالي وأبيض
-        chatItemDiv.style.cssText = `
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 15px;
-            background: #fff;
-            border: 1px solid #eee;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
-            margin-top: 10px;
-        `;
-
-        // إضافة تأثير الحوم بداخل المؤشر
-        chatItemDiv.addEventListener("mouseover", () => chatItemDiv.style.background = "#fff6f0");
-        chatItemDiv.addEventListener("mouseout", () => chatItemDiv.style.background = "#fff");
-
-        // بناء محتوى الكرت وعرض عدد الرسائل غير المقروءة بجانب الأيقونة إن وجدت
-        let badgeHTML = `<span style="color: #888; font-size: 12px;">مقرؤة ✅</span>`;
-        if (unreadCount > 0) {
-            badgeHTML = `
-                <span style="
-                    background: #ff3333; 
-                    color: #fff; 
-                    padding: 3px 9px; 
-                    border-radius: 20px; 
-                    font-size: 11px; 
-                    font-weight: bold;
-                    box-shadow: 0 2px 5px rgba(255,51,51,0.3);
-                ">
-                    ${unreadCount} رسائل جديدة 🚨
-                </span>`;
-        } else if (!hasChat) {
-            badgeHTML = `<span style="color: #bbb; font-size: 12px;">مابش رسائل</span>`;
-        }
-
-        // اختصار نص الرسالة الأخيرة إذا كان طويلاً جداً (مثل الفواتير) ليظهر بشكل منسق
-        let shortMessage = lastMessageText.length > 40 ? lastMessageText.substring(0, 40) + "..." : lastMessageText;
-
-        chatItemDiv.innerHTML = `
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <div style="
-                    width: 45px; 
-                    height: 45px; 
-                    background: #FF6600; 
-                    color: #fff; 
-                    border-radius: 50%; 
-                    display: flex; 
-                    align-items: center; 
-                    justify-content: center;
-                ">
-                    <span class="material-symbols-rounded">support_agent</span>
+        chatCard.innerHTML = `
+            <div class="chat-avatar-box">
+                <span class="material-symbols-rounded">support_agent</span>
+                <div class="online-badge"></div>
+            </div>
+            <div class="chat-info-content">
+                <div class="chat-info-top">
+                    <h4 class="chat-sender-name">الدعم الفني - زين أون لاين</h4>
+                    <span class="chat-time-stamp">${timeStampText}</span>
                 </div>
-                <div style="text-align: right;">
-                    <h4 style="margin: 0 0 5px 0; color: #333; font-size: 15px;">الدعم الفني - زين أون لاين</h4>
-                    <p style="margin: 0; color: #777; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">${shortMessage}</p>
+                <div class="chat-info-bottom">
+                    <p class="chat-last-message">${shortMessage}</p>
+                    
+                    <div class="chat-meta-status">
+                        <span class="material-symbols-rounded pin-icon active">push_pin</span>
+                        ${unreadCount > 0 ? `<span class="unread-count-badge">${unreadCount}</span>` : ''}
+                    </div>
                 </div>
             </div>
-            <div>
-                ${badgeHTML}
+            
+            <div class="chat-hover-actions">
+                <button class="hover-act-btn pin" title="تثبيت المحادثة"><span class="material-symbols-rounded">push_pin</span></button>
+                <button class="hover-act-btn delete" title="حذف المحادثة"><span class="material-symbols-rounded">delete</span></button>
             </div>
         `;
 
-        // بمجرد الضغط الفوري على كرت الشركة يتم الانتقال الفوري لصفحة الدردشة الثانية (الكود الثاني)
-        chatItemDiv.addEventListener("click", () => {
+        // دالة نقر برمجية آمنة لفتح صفحة الدردشة بنجاح دون أي تعارض
+        chatCard.addEventListener('click', (e) => {
+            if (e.target.closest('.chat-hover-actions') || e.target.closest('.hover-act-btn')) {
+                return; 
+            }
             window.location.href = `index2.html?userId=${myUserId}`;
+
         });
 
-        customerChatListContainer.appendChild(chatItemDiv);
+        const hoverActions = chatCard.querySelector('.chat-hover-actions');
+        if(hoverActions) {
+            hoverActions.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+
+        customerChatListContainer.appendChild(chatCard);
     });
 }
+
+// ================= كود ذكي لتفعيل قسم الدردشة تلقائياً عند الرجوع من صفحة المحادثة =================
+document.addEventListener("DOMContentLoaded", () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetTab = urlParams.get('tab');
+
+    if (targetTab === 'chat') {
+        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+        
+        const chatSection = document.getElementById('chat');
+        if (chatSection) chatSection.classList.add('active');
+
+        document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-page') === 'chat') {
+                btn.classList.add('active');
+            }
+        });
+    }
+});

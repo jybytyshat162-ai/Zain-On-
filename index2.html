@@ -3,41 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>زين أون لاين - المحادثة الفورية</title>
-    <link rel="stylesheet" href="style2.css"
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>محادثة العميل - زين أون لاين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght=400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f0f2f5; color: #333; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        
+        header { background-color: #FF6600; color: white; padding: 15px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 5px rgba(0,0,0,0.1); z-index: 10; }
+        .back-btn { background: none; border: none; color: white; cursor: pointer; display: flex; align-items: center; font-family: 'Cairo', sans-serif; font-size: 15px; gap: 5px; }
+        header h3 { font-size: 16px; font-weight: 600; }
+        
+        #orderTimerBar { background-color: #e74c3c; color: white; text-align: center; padding: 10px 15px; font-size: 14px; font-weight: bold; display: none; }
+        .client-cancel-btn { width: 100%; max-width: 200px; padding: 6px 12px; margin: 8px auto 0 auto; background-color: #ffffff; color: #c0392b; border: 2px solid #c0392b; border-radius: 5px; font-family: 'Cairo', sans-serif; font-weight: bold; cursor: pointer; display: block; transition: 0.2s; }
+        .client-cancel-btn:hover { background-color: #c0392b; color: white; }
+
+        .chat-room-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background-color: #efeae2; }
+        .bubble { max-width: 75%; padding: 12px 15px; border-radius: 12px; font-size: 14px; line-height: 1.6; word-wrap: break-word; white-space: pre-line; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+        .bubble.admin { background-color: #ffffff; color: #111; align-self: flex-start; border-top-right-radius: 0; }
+        .bubble.client { background-color: #d9fdd3; color: #111; align-self: flex-end; border-top-left-radius: 0; }
+        
+        .chat-room-input { background: #f0f2f5; padding: 10px 15px; display: flex; gap: 10px; align-items: center; border-top: 1px solid #ddd; }
+        .chat-room-input input { flex: 1; padding: 12px; border: none; border-radius: 25px; outline: none; font-family: 'Cairo', sans-serif; font-size: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .chat-room-input button { background: #FF6600; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.2); transition: 0.2s; }
+    </style>
 </head>
 <body>
 
-    <header class="chat-header">
-        <button class="back-btn" onclick="window.location.href='index.html'">
-            <span class="material-symbols-rounded">arrow_forward</span>
+  <header>
+    <button class="back-btn" onclick="window.location.href='index.html?tab=chat'">
+        <span class="material-symbols-rounded">arrow_forward</span>
+        <span>رجوع</span>
+    </button>
+    <h3>محادثة الدعم الفني</h3>
+    <span class="material-symbols-rounded">support_agent</span>
+</header>
+
+
+    <div id="orderTimerBar">
+        <span id="timerText">⏳ جاري فحص حالة الطلب المباشر...</span>
+        <button id="clientCancelBtn" class="client-cancel-btn" style="display: none;">❌ إلغاء الطلب</button>
+    </div>
+
+    <div id="roomMessagesContainer" class="chat-room-messages">
+        <p style="text-align:center; color:#666; margin:auto;">جاري فتح صندوق الرسائل والطلبات الحية...</p>
+    </div>
+
+    <div class="chat-room-input">
+        <input id="roomReplyInp" type="text" placeholder="اكتب رسالتك أو ردك هنا...">
+        <button id="roomSendBtn">
+            <span class="material-symbols-rounded" style="transform: rotate(180deg);">send</span>
         </button>
-        <div class="user-info">
-            <div class="avatar">
-                <span class="material-symbols-rounded">support_agent</span>
-            </div>
-            <div>
-                <h4>الدعم الفني - زين أون لاين</h4>
-                <p class="status">متصل الآن • خدمة العملاء</p>
-            </div>
-        </div>
-    </header>
+    </div>
 
-    <main class="chat-container" id="chatContainer">
-        <div class="message system">
-            <p>مرحباً بك في مركز خدمة عملاء زين أون لاين. أرسل إشعار التحويل هنا وسيتم مراجعة طلبك وتفعيله فوراً من قبل الإدارة.</p>
-        </div>
-    </main>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    <footer class="chat-footer">
-        <input type="text" id="messageInput" placeholder="اكتب رسالتك هنا...">
-        <button id="sendMsgBtn">
-            <span class="material-symbols-rounded">send</span>
-        </button>
-    </footer>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUmiSv1NdOWCZhJCGab6in028MPhNjFgE",
+            authDomain: "zain-online-938c5.firebaseapp.com",
+            databaseURL: "https://zain-online-938c5-default-rtdb.firebaseio.com",
+            projectId: "zain-online-938c5",
+            storageBucket: "zain-online-938c5.firebasestorage.app",
+            messagingSenderId: "76098093405",
+            appId: "1:76098093405:web:672fec6028e89e434b68b4",
+            measurementId: "G-EEK45Z2HC8"
+        };
 
-  <script type="module" src="script2.js"></script>
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentUserId = urlParams.get('userId') || localStorage.getItem("zain_user_id");
+        
+        if (!currentUserId) {
+            currentUserId = "user_" + Math.random().toString(36).substring(2, 11);
+            localStorage.setItem("zain_user_id", currentUserId);
+        }
+
+        const roomMessagesContainer = document.getElementById("roomMessagesContainer");
+        const roomReplyInp = document.getElementById("roomReplyInp");
+        const roomSendBtn = document.getElementById("roomSendBtn");
+        const orderTimerBar = document.getElementById("orderTimerBar");
+        const timerText = document.getElementById("timerText");
+        const clientCancelBtn = document.getElementById("clientCancelBtn");
+
+        let timerInterval = null;
+        const orderStatusRef = ref(db, `orders/${currentUserId}`);
+
+        // مراقبة حالة الطلب عند العميل (مع زر الإلغاء الخاص به فقط)
+        onValue(orderStatusRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const orderData = snapshot.val();
+                
+                if (orderData.status === "pending") {
+                    orderTimerBar.style.display = "block";
+                    orderTimerBar.style.backgroundColor = "#e74c3c";
+                    clientCancelBtn.style.display = "block"; // إظهار زر الإلغاء للعميل
+
+                    const elapsedSeconds = Math.floor((Date.now() - orderData.timestamp) / 1000);
+                    let timeLeft = 120 - elapsedSeconds;
+
+                    if (timeLeft > 0) {
+                        clearInterval(timerInterval);
+                        timerInterval = setInterval(() => {
+                            timeLeft--;
+                            let minutes = Math.floor(timeLeft / 60);
+                            let seconds = timeLeft % 60;
+                            timerText.innerText = `⚠️ طلبك قيد المراجعة الفورية! الوقت المتبقي: ${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+                            
+                            if (timeLeft <= 0) {
+                                clearInterval(timerInterval);
+                                triggerAutoCancel();
+                            }
+                        }, 1000);
+                    } else {
+                        triggerAutoCancel();
+                    }
+
+                    // حدث ضغط زر الإلغاء من قبل العميل
+                    clientCancelBtn.onclick = () => {
+                        if (confirm("هل أنت متأكد من إلغاء طلبك الحالي؟")) {
+                            clearInterval(timerInterval);
+                            update(orderStatusRef, { status: "cancelled" });
+                            if (orderData.chatKey) {
+                                update(ref(db, `chats/${currentUserId}/${orderData.chatKey}`), {
+                                    message: `${orderData.orderDetails || '📦 تفاصيل الطلب'}\n\n❌ تم إلغاء الطلب من قبل العميل.`
+                                });
+                            }
+                            alert("تم إلغاء الطلب بنجاح.");
+                        }
+                    };
+
+                } else if (orderData.status === "approved") {
+                    clearInterval(timerInterval);
+                    orderTimerBar.style.display = "block";
+                    orderTimerBar.style.backgroundColor = "#27ae60";
+                    clientCancelBtn.style.display = "none";
+                    timerText.innerText = `✅ تم اعتماد وقبول طلبك بنجاح وجاري التجهيز الشحن الفوري!`;
+                } else {
+                    clearInterval(timerInterval);
+                    orderTimerBar.style.display = "none";
+                }
+            } else {
+                clearInterval(timerInterval);
+                orderTimerBar.style.display = "none";
+            }
+        });
+
+        function triggerAutoCancel() {
+            clearInterval(timerInterval);
+            get(orderStatusRef).then((snapshot) => {
+                if (snapshot.exists() && snapshot.val().status === "pending") {
+                    const data = snapshot.val();
+                    update(orderStatusRef, { status: "cancelled" });
+                    if (data.chatKey) {
+                        update(ref(db, `chats/${currentUserId}/${data.chatKey}`), {
+                            message: `❌ تم إلغاء هذا الطلب تلقائياً لعدم استجابة الإدارة خلال دقيقتين.`
+                        });
+                    }
+                    alert("⏰ انتهت المهلة! تم إلغاء الطلب تلقائياً، وتجد منتجاتك في السلة.");
+                }
+            });
+        }
+
+        // عرض رسائل الشات العادية للعميل
+        const specificChatRef = ref(db, `chats/${currentUserId}`);
+        onValue(specificChatRef, (snapshot) => {
+            roomMessagesContainer.innerHTML = "";
+            if (!snapshot.exists()) {
+                roomMessagesContainer.innerHTML = '<p style="text-align:center; color:#888; margin:auto;">أرسل رسالة لبدء المحادثة الفورية...</p>';
+                return;
+            }
+
+            snapshot.forEach((childSnapshot) => {
+                const msgData = childSnapshot.val();
+                const bubble = document.createElement("div");
+                bubble.className = msgData.sender === "admin" ? "bubble admin" : "bubble client";
+                bubble.innerText = msgData.message;
+                roomMessagesContainer.appendChild(bubble);
+            });
+            roomMessagesContainer.scrollTop = roomMessagesContainer.scrollHeight;
+        });
+
+        function sendMessage() {
+            const text = roomReplyInp.value.trim();
+            if (!text) return;
+
+            const newMsgRef = push(ref(db, `chats/${currentUserId}`));
+            set(newMsgRef, {
+                sender: "client",
+                message: text,
+                timestamp: Date.now(),
+                status: "sent"
+            }).then(() => {
+                roomReplyInp.value = "";
+            });
+        }
+
+        roomSendBtn.addEventListener("click", sendMessage);
+        roomReplyInp.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
+    </script>
 </body>
 </html>
