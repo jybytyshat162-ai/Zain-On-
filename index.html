@@ -8,7 +8,14 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    
+    <link rel="manifest" href="manifest.json">
+
+    
 </head>
+
+
+
 <body>
 
     <!-- ================= قسم الصفحة الرئيسية ================= -->
@@ -211,5 +218,55 @@
     </nav>
 
     <script type="module" src="script.js"></script>
+    
+    
+    
+    <script>
+  let deferredPrompt;
+
+  // تسجيل الـ Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // إيقاف المتصفح من إظهار النافذة الافتراضية
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // هنا تظهر النافذة المخصصة التي صممناها سابقاً
+    showInstallModal();
+  });
+
+  function showInstallModal() {
+    // يمكنك هنا استخدام نفس دالة النوافذ المخصصة (showCustomAlert) التي استخدمناها في الشات
+    // لتطلب من المستخدم الضغط على زر "تحميل التطبيق"
+    const overlay = document.createElement("div");
+    overlay.className = "custom-modal-overlay active";
+    overlay.innerHTML = `
+        <div class="custom-modal-box">
+            <h3>تحميل التطبيق</h3>
+            <p>هل تود تثبيت "زين أون لاين" على شاشة هاتفك الرئيسية؟</p>
+            <div class="modal-buttons-layout">
+                <button id="btnInstall" class="modal-prime-btn confirm">تثبيت الآن</button>
+                <button id="btnCancel" class="modal-prime-btn cancel">لاحقاً</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    document.getElementById("btnInstall").addEventListener("click", () => {
+      deferredPrompt.prompt();
+      overlay.remove();
+    });
+
+    document.getElementById("btnCancel").addEventListener("click", () => {
+      overlay.remove();
+    });
+  }
+</script>
+
+    
+    
 </body>
 </html>
