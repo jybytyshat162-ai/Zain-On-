@@ -28,6 +28,85 @@ if (!myUserId) {
     localStorage.setItem("zain_user_id", myUserId);
 }
 
+// 🛠️ ================= محرك النوافذ المنبثقة المخصصة الفخمة لمتجر زين أون لاين =================
+function showCustomAlert(title, message, type = "success") {
+    return new Promise((resolve) => {
+        // إزالة أي نافذة سابقة متبقية بالصفحة لمنع تكرار الهياكل
+        const oldOverlay = document.getElementById("globalModalOverlay");
+        if (oldOverlay) oldOverlay.remove();
+
+        // تحديد الأيقونة بحسب نوع التنبيه المطلوبة
+        let iconName = "check_circle";
+        if (type === "warning") iconName = "warning";
+        if (type === "error") iconName = "error";
+
+        // بناء هيكل الـ HTML ديناميكياً وحقنه بـ Body
+        const overlay = document.createElement("div");
+        overlay.id = "globalModalOverlay";
+        overlay.className = "custom-modal-overlay";
+        overlay.innerHTML = `
+            <div class="custom-modal-box">
+                <div class="modal-icon-wrapper ${type}">
+                    <span class="material-symbols-rounded">${iconName}</span>
+                </div>
+                <h3>${title}</h3>
+                <p>${message}</p>
+                <div class="modal-buttons-layout">
+                    <button id="modalCloseBtn" class="modal-prime-btn confirm">موافق</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        // إحداث أنيميشن الظهور السلس لبج كود الفايرفوكس والأجهزة المتنوعة
+        setTimeout(() => overlay.classList.add("active"), 10);
+
+        document.getElementById("modalCloseBtn").addEventListener("click", () => {
+            overlay.classList.remove("active");
+            setTimeout(() => { overlay.remove(); resolve(); }, 300);
+        });
+    });
+}
+
+function showCustomPrompt(title, subtitle, defaultInputValue = "") {
+    return new Promise((resolve) => {
+        const oldOverlay = document.getElementById("globalModalOverlay");
+        if (oldOverlay) oldOverlay.remove();
+
+        const overlay = document.createElement("div");
+        overlay.id = "globalModalOverlay";
+        overlay.className = "custom-modal-overlay";
+        overlay.innerHTML = `
+            <div class="custom-modal-box">
+                <div class="modal-icon-wrapper location">
+                    <span class="material-symbols-rounded">distance</span>
+                </div>
+                <h3>${title}</h3>
+                <p>${subtitle}</p>
+                <input type="text" id="modalPromptInput" class="modal-input-field" value="${defaultInputValue}" placeholder="اكتب تفاصيل العنوان هنا...">
+                <div class="modal-buttons-layout">
+                    <button id="modalConfirmPromptBtn" class="modal-prime-btn confirm">تأكيد الإرسال</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        setTimeout(() => overlay.classList.add("active"), 10);
+
+        // وضع التركيز الفوري على الحقل تلقائياً لتسهيل تجربة الكتابة
+        const inputField = document.getElementById("modalPromptInput");
+        inputField.focus();
+        if(defaultInputValue) inputField.select();
+
+        document.getElementById("modalConfirmPromptBtn").addEventListener("click", () => {
+            const resultVal = inputField.value.trim();
+            overlay.classList.remove("active");
+            setTimeout(() => { overlay.remove(); resolve(resultVal); }, 300);
+        });
+    });
+}
+// ====================================================================================
+
 // ================= نظام تسجيل وزيادة عدد الزوار تلقائياً =================
 function handleVisitorCount() {
     const visitorsRef = ref(db, 'visitors/count');
@@ -88,7 +167,6 @@ function renderProducts(array) {
         return;
     }
 
-    // تجميع المنتجات بناءً على أقسامها تلقائياً
     const categoriesMap = {};
     array.forEach(product => {
         const catName = product.category || "أخرى";
@@ -98,7 +176,6 @@ function renderProducts(array) {
         categoriesMap[catName].push(product);
     });
 
-    // بناء الهيكل لكل قسم
     for (let catName in categoriesMap) {
         const sectionBlock = document.createElement("div");
         sectionBlock.className = "category-section-block";
@@ -168,7 +245,6 @@ function showProductDetails(product) {
     });
 }
 
-// التحكم بالكمية (+ / -) داخل صفحة التفاصيل
 document.getElementById("plusQty").addEventListener("click", () => {
     currentQty++;
     document.getElementById("qtyVal").innerText = currentQty;
@@ -181,25 +257,25 @@ document.getElementById("minusQty").addEventListener("click", () => {
     }
 });
 
-// ================= نظام السلة مع التحقق الصارم من كمية المخزن المتوفرة =================
+// ================= نظام السلة مع التحقق الصارم ونوافذ التنبيه المحدثة فخمة =================
 document.getElementById("addToCartBtn").addEventListener("click", () => {
     if(!selectedProduct) return;
     
     const freshProductRef = ref(db, `products/${selectedProduct.id}`);
     
-    get(freshProductRef).then((snapshot) => {
+    get(freshProductRef).then(async (snapshot) => {
         let dbQuantity = 0;
         if (snapshot.exists() && snapshot.val().quantity !== undefined) {
             dbQuantity = Number(snapshot.val().quantity);
         }
 
         if (dbQuantity <= 0) {
-            alert("عذراً، هذا المنتج نفذ تماماً من المخزن حالياً! ❌");
+            showCustomAlert("نفذت الكمية", "عذراً، هذا المنتج نفذ تماماً من المخزن حالياً! ❌", "error");
             return;
         }
         
         if (currentQty > dbQuantity) {
-            alert(`عذراً! الكمية المتبقية في المخزن فقط هي: ${dbQuantity} كرتون.`);
+            showCustomAlert("المخزن لا يكفي", `عذراً! الكمية المتبقية في المخزن فقط هي: ${dbQuantity} كرتون.`, "warning");
             return;
         }
 
@@ -213,7 +289,7 @@ document.getElementById("addToCartBtn").addEventListener("click", () => {
         currentCart.push(cartItem);
         updateCartUI();
         
-        alert(`تم إضافة ${currentQty} من [${selectedProduct.name}] بنجاح إلى العربة! 🛒`);
+        await showCustomAlert("تمت الإضافة", `تم إضافة ${currentQty} من [${selectedProduct.name}] بنجاح إلى العربة! 🛒`, "success");
         
         buttons.forEach(b => b.classList.remove("active"));
         pages.forEach(p => p.classList.remove("active"));
@@ -221,7 +297,7 @@ document.getElementById("addToCartBtn").addEventListener("click", () => {
         document.getElementById("home").classList.add("active");
         
     }).catch(err => {
-        alert("خطأ في الاتصال بالشبكة للتحقق من الكمية: " + err.message);
+        showCustomAlert("خطأ بالشبكة", "خطأ في الاتصال بالشبكة للتحقق من الكمية: " + err.message, "error");
     });
 });
 
@@ -273,7 +349,7 @@ const paymentOptionsContainer = document.getElementById("paymentOptionsContainer
 if(checkoutBtn) {
     checkoutBtn.addEventListener("click", () => {
         if(currentCart.length === 0) {
-            alert("سلتك فارغة! يرجى إضافة منتجات أولاً قبل إتمام الدفع.");
+            showCustomAlert("العربة فارغة", "سلتك فارغة! يرجى إضافة منتجات أولاً قبل إتمام الدفع.", "warning");
             return;
         }
         gatewaysBox.style.display = "block";
@@ -327,25 +403,27 @@ if(copyAccBtn) {
     copyAccBtn.addEventListener("click", () => {
         if(!activeAccountNumber) return;
         navigator.clipboard.writeText(activeAccountNumber).then(() => {
-            alert("تم نسخ رقم الحساب بنجاح! 📋");
+            showCustomAlert("تم النسخ", "تم نسخ رقم الحساب بنجاح! 📋", "success");
         }).catch(() => {
-            alert("رقم الحساب هو: " + activeAccountNumber);
+            showCustomAlert("الحساب", "رقم الحساب هو: " + activeAccountNumber, "success");
         });
     });
 }
 
-// إرسال تفاصيل الطلب وتحديث المخزن والتوجه لصفحة index2.html مباشرة مع إشعار تليجرام
+// إرسال تفاصيل الطلب مع النوافذ المنبثقة الفخمة البديلة بالكامل للـ Prompt والـ Alert الافتراضية
 const sendInvoiceBtn = document.getElementById("sendInvoiceBtn");
 if(sendInvoiceBtn) {
     sendInvoiceBtn.addEventListener("click", async () => {
         if (currentCart.length === 0) {
-            alert("عذراً، السلة فارغة حالياً.");
+            showCustomAlert("العربة فارغة", "عذراً، السلة فارغة حالياً.", "warning");
             return;
         }
 
         const orderNumber = "99" + Math.floor(1000000 + Math.random() * 9000000);
 
-        let userLocation = prompt("يرجى كتابة عنوانك بالتفصيل أو الضغط على 'موافق' لجلب موقعك تلقائياً:", "جاري محاولة تحديد الموقع...");
+        // استخدام نافذة الإدخال الفخمة والمخصصة الجديدة بدلاً من prompt المزعج
+        let userLocation = await showCustomPrompt("تحديد موقع التوصيل", "يرجى كتابة عنوانك بالتفصيل لتسهيل تسليم الشحنة إليك فوراً:", "شحن المحافظة - مدينة...");
+        
         if (!userLocation || userLocation === "جاري محاولة تحديد الموقع...") {
             try {
                 const position = await new Promise((resolve, reject) => {
@@ -353,7 +431,7 @@ if(sendInvoiceBtn) {
                 });
                 userLocation = `موقع جغرافي (خط طول: ${position.coords.longitude}, خط عرض: ${position.coords.latitude})`;
             } catch (err) {
-                userLocation = "لم يتم تحديد الموقع (العميل لم يسمح بالوصول)";
+                userLocation = "لم يتم تحديد الموقع (العميل لم يسمح بالوصول والتوثيق المباشر)";
             }
         }
 
@@ -365,7 +443,7 @@ if(sendInvoiceBtn) {
         });
         orderDetailsMessage += `-------------------------\n💰 الإجمالي الصافي: ${globalTotalSum} ريال يمني.\n⚠️ حالة الطلب: قيد الانتظار...`;
 
-        // --- تحديث الكميات المتبقية في المخزن داخل قاعدة البيانات فور الشراء ---
+        // تحديث كميات المخزن
         for (const item of currentCart) {
             const prodStockRef = ref(db, `products/${item.id}/quantity`);
             try {
@@ -403,40 +481,30 @@ if(sendInvoiceBtn) {
             orderNumber: orderNumber
         });
 
-        // 🚀 ================= نظام إرسال الإشعارات التلقائية لبوت تليجرام =================
+        // 🚀 نظام إرسال الإشعارات التلقائية لبوت تليجرام الشخصي والشريك
         const TELEGRAM_BOT_TOKEN = "8747928905:AAFLOdricrqu1l2g6is7xxVpJpfhju6UZbA"; 
-        const TELEGRAM_CHAT_IDS = ["8516702571", "1652651450"]; // مصفوفة المعرفات الخاصة بك وبشريكك
+        const TELEGRAM_CHAT_IDS = ["8516702571", "1652651450"]; 
         
         let telegramText = `🔔 إشعار طلب جديد من متجر زين أون لاين!\n\n${orderDetailsMessage}\n\n🔗 لمتابعة المحادثة مع العميل سرياً:\nhttps://zain-online-938c5.firebaseapp.com/admin/chat.html?userId=${myUserId}`;
 
-        // إرسال الرسالة لكل معرّف تلقائياً
         TELEGRAM_CHAT_IDS.forEach(chatId => {
             fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    chat_id: chatId,
-                    text: telegramText
-                })
-            }).then(() => {
-                console.log(`تم إرسال التنبيه بنجاح للمعرف: ${chatId}`);
-            }).catch(err => {
-                console.log(`فشل الإرسال للمعرف ${chatId}: `, err);
-            });
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: telegramText })
+            }).catch(err => console.log(`فشل الإرسال للمعرف ${chatId}: `, err));
         });
-        // ====================================================================
 
         currentCart = [];
         updateCartUI();
 
-        alert(`تم إرسال طلبك رقم (${orderNumber}) بنجاح! جاري توجيهك لقسم المحادثات الحية...`);
+        // عرض رسالة النجاح النهائية بالنافذة المودال المتناسقة والمبتكرة
+        await showCustomAlert("تم إرسال طلبك!", `نجح إرسال طلبك برقم (${orderNumber}). جاري توجيهك الآن لقسم المحادثات الحية لتأكيد الاستلام... ✨`, "success");
         window.location.href = `index2.html?tab=chat`; 
     });
 }
 
-// التصفية بحسب التصنيفات والأصناف عند النقر على الأزرار العلوية
+// التصفية بحسب التصنيفات والأصناف
 const categories = document.querySelectorAll(".category-row .cat");
 categories.forEach(cat => {
     cat.addEventListener("click", function() {
@@ -505,27 +573,23 @@ if (customerChatListContainer) {
                 </div>
                 <div class="chat-info-bottom">
                     <p class="chat-last-message">${shortMessage}</p>
-                    
                     <div class="chat-meta-status">
                         <span class="material-symbols-rounded pin-icon active">push_pin</span>
                         ${unreadCount > 0 ? `<span class="unread-count-badge">${unreadCount}</span>` : ''}
                     </div>
                 </div>
             </div>
-            
             <div class="chat-hover-actions">
                 <button class="hover-act-btn pin" title="تثبيت المحادثة"><span class="material-symbols-rounded">push_pin</span></button>
                 <button class="hover-act-btn delete" title="حذف المحادثة"><span class="material-symbols-rounded">delete</span></button>
             </div>
         `;
 
-        // دالة نقر برمجية آمنة لفتح صفحة الدردشة بنجاح دون أي تعارض
         chatCard.addEventListener('click', (e) => {
             if (e.target.closest('.chat-hover-actions') || e.target.closest('.hover-act-btn')) {
                 return; 
             }
             window.location.href = `index2.html?userId=${myUserId}`;
-
         });
 
         const hoverActions = chatCard.querySelector('.chat-hover-actions');
@@ -539,7 +603,7 @@ if (customerChatListContainer) {
     });
 }
 
-// ================= كود ذكي لتفعيل قسم الدردشة تلقائياً عند الرجوع من صفحة المحادثة =================
+// تفعيل قسم الدردشة تلقائياً عند الرجوع من صفحة المحادثة
 document.addEventListener("DOMContentLoaded", () => {
     const urlParams = new URLSearchParams(window.location.search);
     const targetTab = urlParams.get('tab');
