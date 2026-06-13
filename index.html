@@ -9,12 +9,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     
+    <!-- ربط ملف المانيفست للتطبيق -->
     <link rel="manifest" href="manifest.json">
-
     
+    <style>
+        /* ================= تنسيق نافذة تحميل التطبيق الفخمة والمدمجة ================= */
+        .custom-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 99999; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease; padding: 20px;
+        }
+        .custom-modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .custom-modal-box {
+            background: #ffffff; width: 100%; max-width: 360px;
+            border-radius: 24px; padding: 24px; text-align: center;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            transform: scale(0.85); transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            direction: rtl; border: 1px solid rgba(255, 102, 0, 0.05);
+        }
+        .custom-modal-overlay.active .custom-modal-box { transform: scale(1); }
+        .modal-icon-wrapper { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px auto; background: #fff0e6; color: #FF6600; }
+        .modal-icon-wrapper span { font-size: 32px; }
+        .custom-modal-box h3 { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 8px; font-family: 'Cairo', sans-serif; }
+        .custom-modal-box p { font-size: 13px; color: #666; line-height: 1.6; margin-bottom: 20px; font-family: 'Cairo', sans-serif; }
+        .modal-buttons-layout { display: flex; gap: 10px; justify-content: center; }
+        .modal-prime-btn { flex: 1; padding: 11px 18px; border: none; border-radius: 12px; font-size: 13px; font-weight: 700; font-family: 'Cairo', sans-serif; cursor: pointer; transition: 0.2s; }
+        .modal-prime-btn.confirm { background: linear-gradient(135deg, #FF6600, #ff822e); color: #fff; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.2); }
+        .modal-prime-btn.cancel { background: #f0f1f4; color: #555; }
+        .modal-prime-btn:active { transform: scale(0.97); }
+    </style>
 </head>
-
-
 
 <body>
 
@@ -39,9 +68,8 @@
             </div>
         </div>
 
-        <!-- الحاوية الرئيسية للأقسام المتعددة للزبون -->
         <div class="products-section" id="mainProductsContainer">
-            <p style="text-align:center; width:100%; color:#888; padding:40px;">جاري تحميل....�</p>
+            <p style="text-align:center; width:100%; color:#888; padding:40px;">جاري تحميل....</p>
         </div>
     </section>
 
@@ -76,7 +104,6 @@
 
     <!-- ================= قسم عربة التسوق ================= -->
     <section id="cart" class="page">
-        <!-- شريط ترويج الشحن والمميزات العلوي -->
         <div class="alibaba-shipping-ticker">
             <div class="ticker-content">
                 <span class="material-symbols-rounded ticker-icon">local_shipping</span>
@@ -84,9 +111,7 @@
             </div>
         </div>
 
-        <!-- الحاوية الرئيسية المحسنة لعناصر السلة -->
         <div class="cart-main-container">
-            <!-- حالة السلة الفارغة الافتراضية -->
             <div id="cartItemsContainer">
                 <div class="empty-cart-view">
                     <span class="material-symbols-rounded empty-cart-icon">inventory_2</span>
@@ -95,7 +120,6 @@
                 </div>
             </div>
 
-            <!-- بطاقة حماية الطلبات والميزات الضامنة -->
             <div class="alibaba-protection-card">
                 <div class="protection-title">
                     <span class="material-symbols-rounded shield-active">verified_user</span>
@@ -124,7 +148,6 @@
                 </div>
             </div>
 
-            <!-- صندوق بوابات الدفع المحلية عند تفعيله -->
             <div id="gatewaysBox" class="gateways-box-premium" style="display: none;">
                 <div class="gateway-header">
                     <span class="material-symbols-rounded">account_balance_wallet</span>
@@ -153,7 +176,6 @@
             </div>
         </div>
 
-        <!-- شريط الإجمالي والدفع العائم ذكي أسفل الشاشة -->
         <div class="alibaba-bottom-checkout-bar">
             <div class="checkout-bar-inner">
                 <div class="select-all-area">
@@ -174,10 +196,9 @@
         </div>
     </section>
 
-    <!-- ================= قسم قائمة الرسائل والدردشة الواردة ================= -->
+    <!-- ================= قسم قائمة الرسائل والدردشة ================= -->
     <section id="chat" class="page">
         <div class="chat-premium-wrapper">
-            <!-- شريط التحكم العلوي للمحادثات -->
             <div class="chat-control-actions">
                 <div class="chat-title-area">
                     <span class="material-symbols-rounded chat-main-icon">forum</span>
@@ -192,9 +213,8 @@
                 </div>
             </div>
 
-            <!-- حاوية القائمة الرئيسية الحية للمحادثات الواردة للزبون -->
             <div class="chat-list-container" id="customerChatListContainer">
-                <p style="text-align:center; color:#888; padding:20px;">جاري تحميل....�</p>
+                <p style="text-align:center; color:#888; padding:20px;">جاري تحميل....</p>
             </div>
         </div>
     </section>
@@ -219,54 +239,73 @@
 
     <script type="module" src="script.js"></script>
     
-    
-    
+    <!-- البرمجية الذكية لالتقاط حدث التثبيت وإظهار النافذة الفخمة للتطبيق -->
     <script>
-  let deferredPrompt;
+        let deferredPrompt;
 
-  // تسجيل الـ Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js');
-  }
+        // تسجيل الـ Service Worker في الخلفية لتفعيل ميزات التطبيقات التقدمية
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
 
-  window.addEventListener('beforeinstallprompt', (e) => {
-    // إيقاف المتصفح من إظهار النافذة الافتراضية
-    e.preventDefault();
-    deferredPrompt = e;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // منع ظهور الشريط الافتراضي التابع للمتصفح
+            e.preventDefault();
+            deferredPrompt = e;
 
-    // هنا تظهر النافذة المخصصة التي صممناها سابقاً
-    showInstallModal();
-  });
+            // استدعاء نافذة العرض الفخمة المتناسقة مع المتجر
+            showInstallModal();
+        });
 
-  function showInstallModal() {
-    // يمكنك هنا استخدام نفس دالة النوافذ المخصصة (showCustomAlert) التي استخدمناها في الشات
-    // لتطلب من المستخدم الضغط على زر "تحميل التطبيق"
-    const overlay = document.createElement("div");
-    overlay.className = "custom-modal-overlay active";
-    overlay.innerHTML = `
-        <div class="custom-modal-box">
-            <h3>تحميل التطبيق</h3>
-            <p>هل تود تثبيت "زين أون لاين" على شاشة هاتفك الرئيسية؟</p>
-            <div class="modal-buttons-layout">
-                <button id="btnInstall" class="modal-prime-btn confirm">تثبيت الآن</button>
-                <button id="btnCancel" class="modal-prime-btn cancel">لاحقاً</button>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
+        function showInstallModal() {
+            // التحقق من عدم تكرار النافذة إذا كانت مفتوحة بالفعل
+            const oldOverlay = document.getElementById("pwaInstallOverlay");
+            if (oldOverlay) oldOverlay.remove();
 
-    document.getElementById("btnInstall").addEventListener("click", () => {
-      deferredPrompt.prompt();
-      overlay.remove();
-    });
+            const overlay = document.createElement("div");
+            overlay.id = "pwaInstallOverlay";
+            overlay.className = "custom-modal-overlay";
+            overlay.innerHTML = `
+                <div class="custom-modal-box">
+                    <div class="modal-icon-wrapper">
+                        <span class="material-symbols-rounded">android_add_to_home_screen</span>
+                    </div>
+                    <h3>تحميل تطبيق المتجر</h3>
+                    <p>هل تود تثبيت تطبيق "زين أون لاين" المباشر على شاشة هاتفك الرئيسية لتصفح أسرع وأسهل؟</p>
+                    <div class="modal-buttons-layout">
+                        <button id="btnInstall" class="modal-prime-btn confirm">تثبيت الآن</button>
+                        <button id="btnCancel" class="modal-prime-btn cancel">لاحقاً</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(overlay);
+            
+            // تفعيل التأثير البصري المنبثق بسلاسة
+            setTimeout(() => overlay.classList.add("active"), 10);
 
-    document.getElementById("btnCancel").addEventListener("click", () => {
-      overlay.remove();
-    });
-  }
-</script>
+            // تفعيل وظيفة زر التثبيت
+            document.getElementById("btnInstall").addEventListener("click", () => {
+                overlay.classList.remove("active");
+                setTimeout(() => {
+                    overlay.remove();
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        deferredPrompt.userChoice.then((choiceResult) => {
+                            if (choiceResult.outcome === 'accepted') {
+                                console.log('وافق العميل على تثبيت التطبيق');
+                            }
+                            deferredPrompt = null;
+                        });
+                    }
+                }, 300);
+            });
 
-    
-    
+            // تفعيل وظيفة زر التراجع أو الإلغاء
+            document.getElementById("btnCancel").addEventListener("click", () => {
+                overlay.classList.remove("active");
+                setTimeout(() => overlay.remove(), 300);
+            });
+        }
+    </script>
 </body>
 </html>
