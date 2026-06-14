@@ -9,6 +9,14 @@
     
     <link rel="manifest" href="manifest.json">
 
+    <!-- استدعاء مكتبة EmailJS الرسمية لإرسال إشعارات البريد الإلكتروني للعميل فوراً -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            // تم وضع مفتاحك العام الحقيقي المستخرج من الصورة هنا
+            emailjs.init("you0nHoYjeqo1YDqX");
+        })();
+    </script>
     
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -152,7 +160,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const storage = getStorage(app); // تعريف مستودع الصور المرفوعة
+        const storage = getStorage(app); 
 
         const urlParams = new URLSearchParams(window.location.search);
         let currentUserId = urlParams.get('userId') || localStorage.getItem("zain_user_id");
@@ -171,7 +179,44 @@
         const clientCancelBtn = document.getElementById("clientCancelBtn");
 
         let timerInterval = null;
+        let lastKnownStatus = null; // متغير لحفظ آخر حالة تم رصدها لمنع تكرار إرسال نفس البريد الإلكتروني
         const orderStatusRef = ref(db, `orders/${currentUserId}`);
+
+        // 📧 دالة إرسال بريد إلكتروني فوري وحي للعميل عند تغير حالة الطلب
+               // 📧 دالة إرسال بريد إلكتروني فوري وحي عند تغير حالة الطلب
+    // 📧 دالة إرسال بريد إلكتروني فوري للعميل إلى بريده الذي قام بربطه
+// 📧 دالة إرسال بريد إلكتروني ذكية ومترجمة فورياً
+function sendStatusEmailToCustomer(statusTitleAr, statusDetailsAr, statusTitleEn, statusDetailsEn) {
+    let customerEmail = localStorage.getItem("customer_notification_email");
+    let currentLang = localStorage.getItem("app_language") || "ar"; // جلب اللغة الحالية
+
+    if (!customerEmail) {
+        console.log("⚠️ لم يتم إرسال إشعار: العميل لم يقم بربط بريده الإلكتروني.");
+        return; 
+    }
+
+    // اختيار النص بناءً على اللغة الحالية
+    const title = (currentLang === "en") ? statusTitleEn : statusTitleAr;
+    const details = (currentLang === "en") ? statusDetailsEn : statusDetailsAr;
+
+    const templateParams = {
+        to_email: customerEmail,
+        subject: `Zain Online Notification - ${title}`,
+        status_title: title,
+        order_details: details,
+        user_id: currentUserId
+    };
+
+    emailjs.send('service_82hfrak', 'template_9z3zsrd', templateParams)
+        .then(() => {
+            console.log(`🟢 تم إرسال الإشعار باللغة: ${currentLang}`);
+        }, (error) => {
+            console.error('❌ فشل إرسال البريد:', error);
+        });
+}
+
+
+
 
         // 🛠️ محرك النوافذ المنبثقة المخصصة الفخمة المدمجة بداخل الشات
         function showCustomAlert(title, message, type = "success") {
@@ -244,12 +289,20 @@
             });
         }
 
-        // مراقبة حالة الطلب عند العميل
+        // مراقبة حالة الطلب عند العميل + إطلاق إشعارات الإيميل التلقائية
         onValue(orderStatusRef, (snapshot) => {
             if (snapshot.exists()) {
                 const orderData = snapshot.val();
+                const currentStatus = orderData.status;
+                const detailsText = orderData.orderDetails || "تفاصيل المنتجات والعربة";
+
+                // فحص ذكي: إرسال بريد إلكتروني فقط إذا تغيرت الحالة فعلياً منعاً للتكرار العشوائي
+                if (currentStatus !== lastKnownStatus) {
+                    // تم إزالة أمر الإرسال من هنا لتجنب التكرار ولأننا سنطلقه يدوياً في أوامر الإلغاء
+                    lastKnownStatus = currentStatus; // تحديث السجل الحالي للحالة
+                }
                 
-                if (orderData.status === "pending") {
+                if (currentStatus === "pending") {
                     orderTimerBar.style.display = "block";
                     orderTimerBar.style.backgroundColor = "#e74c3c";
                     clientCancelBtn.style.display = "block"; 
@@ -285,16 +338,24 @@
                                     message: `${orderData.orderDetails || '📦 تفاصيل الطلب'}\n\n❌ تم إلغاء الطلب من قبل العميل.`
                                 });
                             }
+                            
+                            // 📧 **التعديل الجديد والمباشر لضمان الإرسال**: نطلق دالة الإرسال يدوياً وبشكل مؤكد هنا
+                            sendStatusEmailToCustomer("تم إلغاء عملية الشراء ❌ (بطلب العميل)", `نحيطك علماً بأنه قد تم إلغاء طلب الشراء الخاص بك بنجاح بناءً على طلبك المباشر من واجهة المحادثة.`);
+                            
                             showCustomAlert("تم الإلغاء", "تم إلغاء طلبك الحالي وتحديث المحادثة بنجاح.", "success");
                         }
                     };
 
-                } else if (orderData.status === "approved") {
+                } else if (currentStatus === "approved") {
                     clearInterval(timerInterval);
                     orderTimerBar.style.display = "block";
                     orderTimerBar.style.backgroundColor = "#27ae60";
                     clientCancelBtn.style.display = "none";
                     timerText.innerText = `✅ تم اعتماد وقبول طلبك بنجاح وجاري تجهيز الشحن الفوري!`;
+                    
+                    // 📧 **التعديل الجديد والمباشر لضمان الإرسال**: نطلق دالة الإرسال يدوياً وبشكل مؤكد عند الاعتماد
+                    sendStatusEmailToCustomer("تم قبول واعتماد طلبك 🎉", `أخبار رائعة! وافقت الإدارة على طلبك المباشر، وجاري الآن تجهيز شحنتك لتوصيلها إليك بأسرع وقت.\n\nبيان الطلب المعتمد:\n${detailsText}`);
+
                 } else {
                     clearInterval(timerInterval);
                     orderTimerBar.style.display = "none";
@@ -302,6 +363,7 @@
             } else {
                 clearInterval(timerInterval);
                 orderTimerBar.style.display = "none";
+                lastKnownStatus = null;
             }
             roomMessagesContainer.scrollTop = roomMessagesContainer.scrollHeight;
         });
@@ -317,17 +379,21 @@
                             message: `❌ تم إلغاء هذا الطلب تلقائياً لعدم استجابة الإدارة خلال دقيقتين.`
                         });
                     }
+                    
+                    // 📧 **التعديل الجديد والمباشر لضمان الإرسال**: نطلق دالة الإرسال يدوياً وبشكل مؤكد عند الإلغاء التلقائي
+                    sendStatusEmailToCustomer("تم إلغاء عملية الشراء ⏰ (تلقائياً)", `نحيطك علماً بأنه قد تم إلغاء طلب الشراء الخاص بك تلقائياً لانتهاء مهلة الاستجابة الفورية من الإدارة المقدرة بدقيقتين.`);
+                    
                     showCustomAlert("انتهت المهلة", "⏰ انتهت المهلة! تم إلغاء الطلب تلقائياً لعدم استجابة الإدارة، وتجد منتجاتك محفوظه بالسلة.", "warning");
                 }
             });
         }
 
-        // عرض رسائل الشات العادية للعميل (مع فحص إن كانت الرسالة نصاً أو رابط صورة)
+        // عرض رسائل الشات العادية للعميل
         const specificChatRef = ref(db, `chats/${currentUserId}`);
         onValue(specificChatRef, (snapshot) => {
             roomMessagesContainer.innerHTML = "";
             if (!snapshot.exists()) {
-                roomMessagesContainer.innerHTML = '<p style="text-align:center; color:#888; margin:auto;">أرسل رسالة لبدء المحادثة الفورية...</p>';
+                roomMessagesContainer.innerHTML = '<p style="text-align:center; color:#666; margin:auto;">أرسل رسالة لبدء المحادثة الفورية...</p>';
                 return;
             }
 
@@ -336,7 +402,6 @@
                 const bubble = document.createElement("div");
                 bubble.className = msgData.sender === "admin" ? "bubble admin" : "bubble client";
                 
-                // فحص ذكي: إذا كان النص يبدأ برابط ويحتوي على امتدادات صور أو مرفوع على فيربيز، اعرضه كصورة
                 if (msgData.message.startsWith("http://") || msgData.message.startsWith("https://")) {
                      const img = document.createElement("img");
                      img.src = msgData.message;
@@ -370,19 +435,17 @@
             });
         }
 
-        // 🖼️ برمجية التقاط ورفع الصور فقط إلى الاستورج
+        // برمجية التقاط ورفع الصور فقط إلى الاستورج
         chatImageInp.addEventListener("change", (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            // التأكيد الأمني للتأكد من أنه ملف صورة فقط
             if (!file.type.startsWith("image/")) {
                 showCustomAlert("نوع الملف غير مدعوم", "يرجى اختيار ملفات الصور فقط (PNG, JPG, JPEG).", "error");
                 chatImageInp.value = "";
                 return;
             }
 
-            // إظهار مؤشر رفع فوري داخل الشات كرسالة مؤقتة
             const tempKey = "temp_" + Date.now();
             const loadingBubble = document.createElement("div");
             loadingBubble.className = "bubble client";
@@ -391,24 +454,21 @@
             roomMessagesContainer.appendChild(loadingBubble);
             roomMessagesContainer.scrollTop = roomMessagesContainer.scrollHeight;
 
-            // مسار حفظ الصورة في الفايربيز استورج باسم فريد لكل مستخدم
             const imageStorageRef = sRef(storage, `chat_images/${currentUserId}/${Date.now()}_${file.name}`);
 
             uploadBytes(imageStorageRef, file).then((snapshot) => {
                 getDownloadURL(snapshot.ref).then((downloadURL) => {
-                    // إخفاء فقاعة التحميل المؤقتة
                     const tempEl = document.getElementById(tempKey);
                     if (tempEl) tempEl.remove();
 
-                    // تسجيل الرابط المباشر للصورة كرسالة بداخل الـ Database ليقرأها المسؤول والعميل فوراً
                     const newMsgRef = push(ref(db, `chats/${currentUserId}`));
                     set(newMsgRef, {
                         sender: "client",
-                        message: downloadURL, // يُرسل رابط الصورة مباشرة ليتم تحويله تلقائياً لوسيط مرئي
+                        message: downloadURL, 
                         timestamp: Date.now(),
                         status: "sent"
                     });
-                    chatImageInp.value = ""; // تصفير حقل الاختيار
+                    chatImageInp.value = ""; 
                 });
             }).catch((error) => {
                 const tempEl = document.getElementById(tempKey);
@@ -421,5 +481,9 @@
         roomSendBtn.addEventListener("click", sendMessage);
         roomReplyInp.addEventListener("keypress", (e) => { if (e.key === "Enter") sendMessage(); });
     </script>
+    
+    <script src="language.js"></script>
+
+    
 </body>
 </html>

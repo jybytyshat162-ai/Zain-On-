@@ -9,7 +9,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
     
-    <!-- ربط ملف المانيفست للتطبيق -->
     <link rel="manifest" href="manifest.json">
     
     <style>
@@ -42,12 +41,89 @@
         .modal-prime-btn.confirm { background: linear-gradient(135deg, #FF6600, #ff822e); color: #fff; box-shadow: 0 4px 12px rgba(255, 102, 0, 0.2); }
         .modal-prime-btn.cancel { background: #f0f1f4; color: #555; }
         .modal-prime-btn:active { transform: scale(0.97); }
+
+        /* ================= تنسيقات شاشة الإعدادات والنوافذ الفرعية التفاعلية المضافة ================= */
+        .settings-modal-overlay, .sub-modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(13, 15, 18, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100000; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease; padding: 20px;
+        }
+        .settings-modal-overlay.active, .sub-modal-overlay.active { opacity: 1; pointer-events: auto; }
+        .settings-modal-box, .sub-modal-box {
+            background: #ffffff; width: 100%; max-width: 350px;
+            border-radius: 28px; padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            transform: translateY(30px); transition: transform 0.3s ease;
+            direction: rtl; border: 1px solid rgba(255, 102, 0, 0.1);
+        }
+        .settings-modal-overlay.active .settings-modal-box, .sub-modal-overlay.active .sub-modal-box { transform: translateY(0); }
+        
+        .settings-header {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #f0f1f4;
+        }
+        .settings-header h3 {
+            font-family: 'Cairo', sans-serif; font-size: 17px; font-weight: 700;
+            color: #1a1a1a; display: flex; align-items: center; gap: 8px;
+        }
+        .settings-header h3 span { color: #FF6600; }
+        .close-settings-btn {
+            background: #f5f6f9; border: none; width: 32px; height: 32px;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: #666; cursor: pointer; transition: 0.2s;
+        }
+
+        .settings-options-list { display: flex; flex-direction: column; gap: 10px; }
+        
+        .settings-item-link {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 16px; background: #f8f9fa; border-radius: 16px;
+            text-decoration: none; color: #333; font-family: 'Cairo', sans-serif;
+            font-size: 14px; font-weight: 600; transition: 0.2s; border: 1px solid transparent;
+            cursor: pointer;
+        }
+        .settings-item-link:active { transform: scale(0.98); background: #fff4ed; border-color: rgba(255, 102, 0, 0.15); }
+        
+        /* تنسيق خاص للزر الغير قابل للضغط (إصدار التطبيق للواجهة الثانية) */
+        .settings-item-link.disabled-item {
+            opacity: 0.7; cursor: not-allowed; background: #f1f2f4;
+        }
+        .settings-item-link.disabled-item:active { transform: none; border-color: transparent; background: #f1f2f4; }
+
+        .settings-item-left { display: flex; align-items: center; gap: 12px; }
+        .settings-item-left span.icon { color: #FF6600; font-size: 22px; }
+        span.arrow { color: #b3b3b3; font-size: 18px; }
+        span.version-badge { background: #e0e2e5; color: #555; font-size: 12px; padding: 2px 10px; border-radius: 20px; font-family: sans-serif; font-weight: bold; }
+
+        /* محتويات النوافذ الفرعية */
+        .input-neon-group { width: 100%; margin: 15px 0; text-align: right; }
+        .input-neon-group label { font-family: 'Cairo', sans-serif; font-size: 13px; color: #666; display: block; margin-bottom: 6px; }
+        .input-neon-field {
+            width: 100%; padding: 12px 16px; border: 1.5px solid #e0e0e0; border-radius: 14px;
+            font-size: 14px; font-family: 'Cairo', sans-serif; outline: none; transition: 0.2s; text-align: left; direction: ltr;
+        }
+        .input-neon-field:focus { border-color: #FF6600; box-shadow: 0 0 10px rgba(255,102,0,0.1); }
+        
+        .lang-select-box { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+        .lang-option {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px; border: 1.5px solid #f0f0f0; border-radius: 14px; cursor: pointer; transition: 0.2s;
+        }
+        .lang-option.selected { border-color: #FF6600; background: #fff8ed; }
+        .lang-text { font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 600; color: #333; }
+
+        /* توزيع الأزرار الأربعة بالتساوي في شريط التنقل */
+        .bottom-nav { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; }
     </style>
 </head>
 
 <body>
 
-    <!-- ================= قسم الصفحة الرئيسية ================= -->
     <section id="home" class="page active">
         <header class="top-bar">
             <div class="search-container">
@@ -69,11 +145,30 @@
         </div>
 
         <div class="products-section" id="mainProductsContainer">
-            <p style="text-align:center; width:100%; color:#888; padding:40px;">جاري تحميل....</p>
+            <div class="premium-loader-inline-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 40px 20px; gap: 20px; background: transparent;">
+                <div class="loader-neon-box" style="position: relative; width: 60px; height: 60px;">
+                    <span style="--i:0;"></span>
+                    <span style="--i:1;"></span>
+                    <span style="--i:2;"></span>
+                    <span style="--i:3;"></span>
+                    <span style="--i:4;"></span>
+                    <span style="--i:5;"></span>
+                    <span style="--i:6;"></span>
+                    <span style="--i:7;"></span>
+                    <span style="--i:8;"></span>
+                    <span style="--i:9;"></span>
+                    <span style="--i:10;"></span>
+                    <span style="--i:11;"></span>
+                    <span style="--i:12;"></span>
+                    <span style="--i:13;"></span>
+                    <span style="--i:14;"></span>
+                    <span style="--i:15;"></span>
+                </div>
+                <div class="loader-neon-text" style="font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 600; color: #FF6600; text-shadow: 0 0 8px rgba(255, 102, 0, 0.3); animation: pulseText 1.5s ease-in-out infinite;"></div>
+            </div>
         </div>
     </section>
 
-    <!-- ================= قسم تفاصيل المنتج ================= -->
     <section id="details" class="page">
         <div class="slider-container">
             <div class="slider" id="detailsSlider">
@@ -87,22 +182,16 @@
             <h2 id="detName">اسم المنتج</h2>
             <p class="price" id="detPrice">0 ريال يمني</p>
             <p id="detStock" style="color: #e67e22; font-weight: bold; font-size: 14px; margin-bottom: 10px;">الكمية المتوفرة: جاري الفحص...</p>
-
-            <p class="desc" id="detDesc">
-                وصف المنتج يظهر هنا بشكل احترافي
-            </p>
-
+            <p class="desc" id="detDesc">وصف المنتج يظهر هنا بشكل احترافي</p>
             <div class="qty">
                 <button id="minusQty">-</button>
                 <span id="qtyVal">1</span>
                 <button id="plusQty">+</button>
             </div>
-
             <button class="btn" id="addToCartBtn">إضافة إلى العربة</button>
         </div>
     </section>
 
-    <!-- ================= قسم عربة التسوق ================= -->
     <section id="cart" class="page">
         <div class="alibaba-shipping-ticker">
             <div class="ticker-content">
@@ -196,7 +285,6 @@
         </div>
     </section>
 
-    <!-- ================= قسم قائمة الرسائل والدردشة ================= -->
     <section id="chat" class="page">
         <div class="chat-premium-wrapper">
             <div class="chat-control-actions">
@@ -214,12 +302,105 @@
             </div>
 
             <div class="chat-list-container" id="customerChatListContainer">
-                <p style="text-align:center; color:#888; padding:20px;">جاري تحميل....</p>
+                <div class="premium-chat-loader" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; padding: 30px 20px; gap: 15px; background: transparent;">
+                    <div class="message-neon-loader" style="display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px;">
+                        <div class="neon-dot" style="--d:1;"></div>
+                        <div class="neon-dot" style="--d:2;"></div>
+                        <div class="neon-dot" style="--d:3;"></div>
+                    </div>
+                    <div class="loader-neon-text" style="font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 600; color: #FF6600; text-shadow: 0 0 8px rgba(255, 102, 0, 0.3); animation: pulseText 1.5s ease-in-out infinite;"></div>
+                </div>
             </div>
         </div>
     </section>
 
-    <!-- ================= شريط التنقل السفلي الثابت ================= -->
+    <div id="customSettingsOverlay" class="settings-modal-overlay">
+        <div class="settings-modal-box">
+            <div class="settings-header">
+                <h3><span class="material-symbols-rounded">settings</span> إعدادات التطبيق</h3>
+                <button class="close-settings-btn" id="closeSettingsModal"><span class="material-symbols-rounded" style="font-size:18px;">close</span></button>
+            </div>
+            <div class="settings-options-list">
+                <div class="settings-item-link" id="triggerNotificationModal">
+                    <div class="settings-item-left">
+                        <span class="material-symbols-rounded icon">notifications_active</span>
+                        <span>ربط الإشعارات والبريد</span>
+                    </div>
+                    <span class="material-symbols-rounded arrow">chevron_left</span>
+                </div>
+                
+                <div class="settings-item-link" id="triggerLanguageModal">
+                    <div class="settings-item-left">
+                        <span class="material-symbols-rounded icon">language</span>
+                        <span>تغيير لغة التطبيق</span>
+                    </div>
+                    <span class="material-symbols-rounded arrow">chevron_left</span>
+                </div>
+                
+                <a href="index4.html" class="settings-item-link">
+                    <div class="settings-item-left">
+                        <span class="material-symbols-rounded icon">info</span>
+                        <span>عنا وحول المنصة</span>
+                    </div>
+                    <span class="material-symbols-rounded arrow">chevron_left</span>
+                </a>
+                
+                <div class="settings-item-link disabled-item">
+                    <div class="settings-item-left">
+                        <span class="material-symbols-rounded icon">layers</span>
+                        <span>نسخة الواجهة الثانية</span>
+                    </div>
+                    <span class="version-badge">V 2.0.4</span>
+                </div>
+                
+                <a href="index5.html" class="settings-item-link">
+                    <div class="settings-item-left">
+                        <span class="material-symbols-rounded icon">new_releases</span>
+                        <span>إصدار الموقع والتحديثات</span>
+                    </div>
+                    <span class="material-symbols-rounded arrow">chevron_left</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div id="notificationEmailModal" class="sub-modal-overlay">
+        <div class="sub-modal-box">
+            <div class="settings-header">
+                <h3><span class="material-symbols-rounded">mail</span> ربط البريد للإشعارات</h3>
+                <button class="close-settings-btn" id="closeEmailModal"><span class="material-symbols-rounded" style="font-size:18px;">close</span></button>
+            </div>
+            <p style="font-family:'Cairo'; font-size:13px; color:#666; line-height:1.5;">أدخل بريدك الإلكتروني لتلقي إشعارات فورية ومباشرة عند قبول طلباتك أو رفضها من النظام.</p>
+            <div class="input-neon-group">
+                <label>البريد الإلكتروني للعميل:</label>
+                <input type="email" id="customerNotificationEmailInp" class="input-neon-field" placeholder="example@gmail.com">
+            </div>
+            <div class="modal-buttons-layout">
+                <button id="saveEmailBtn" class="modal-prime-btn confirm">حفظ والربط الفوري</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="languageSelectModal" class="sub-modal-overlay">
+        <div class="sub-modal-box">
+            <div class="settings-header">
+                <h3><span class="material-symbols-rounded">translate</span> اختر اللغة / Language</h3>
+                <button class="close-settings-btn" id="closeLangModal"><span class="material-symbols-rounded" style="font-size:18px;">close</span></button>
+            </div>
+            <div class="lang-select-box">
+                <div class="lang-option selected" data-lang="ar">
+                    <span class="lang-text">العربية (اللغة الحالية)</span>
+                    <span class="material-symbols-rounded" style="color:#FF6600;">check_circle</span>
+                </div>
+                <div class="lang-option" data-lang="en">
+                    <span class="lang-text">English</span>
+                    <span class="material-symbols-rounded" style="color:#ccc;">radio_button_unchecked</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <nav class="bottom-nav">
         <button class="nav-btn active" data-page="home">
             <span class="material-symbols-rounded">home</span>
@@ -235,30 +416,29 @@
             <span class="material-symbols-rounded">shopping_cart</span>
             <span>العربة</span>
         </button>
+
+        <button class="nav-btn" id="openSettingsModalBtn">
+            <span class="material-symbols-rounded">settings</span>
+            <span>الإعدادات</span>
+        </button>
     </nav>
 
     <script type="module" src="script.js"></script>
     
-    <!-- البرمجية الذكية لالتقاط حدث التثبيت وإظهار النافذة الفخمة للتطبيق -->
     <script>
         let deferredPrompt;
 
-        // تسجيل الـ Service Worker في الخلفية لتفعيل ميزات التطبيقات التقدمية
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js');
         }
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // منع ظهور الشريط الافتراضي التابع للمتصفح
             e.preventDefault();
             deferredPrompt = e;
-
-            // استدعاء نافذة العرض الفخمة المتناسقة مع المتجر
             showInstallModal();
         });
 
         function showInstallModal() {
-            // التحقق من عدم تكرار النافذة إذا كانت مفتوحة بالفعل
             const oldOverlay = document.getElementById("pwaInstallOverlay");
             if (oldOverlay) oldOverlay.remove();
 
@@ -271,7 +451,7 @@
                         <span class="material-symbols-rounded">android_add_to_home_screen</span>
                     </div>
                     <h3>تحميل تطبيق المتجر</h3>
-                    <p>هل تود تثبيت تطبيق "زين أون لاين" المباشر على شاشة هاتفك الرئيسية لتصفح أسرع وأسهل؟</p>
+                    <p>هل تود تثبيت تطبيق "زين أون لاين" المباشر على شاشة هاتفك الرئيسية لتصفح أسرع وأسهل</p>
                     <div class="modal-buttons-layout">
                         <button id="btnInstall" class="modal-prime-btn confirm">تثبيت الآن</button>
                         <button id="btnCancel" class="modal-prime-btn cancel">لاحقاً</button>
@@ -280,10 +460,8 @@
             `;
             document.body.appendChild(overlay);
             
-            // تفعيل التأثير البصري المنبثق بسلاسة
             setTimeout(() => overlay.classList.add("active"), 10);
 
-            // تفعيل وظيفة زر التثبيت
             document.getElementById("btnInstall").addEventListener("click", () => {
                 overlay.classList.remove("active");
                 setTimeout(() => {
@@ -300,12 +478,114 @@
                 }, 300);
             });
 
-            // تفعيل وظيفة زر التراجع أو الإلغاء
             document.getElementById("btnCancel").addEventListener("click", () => {
                 overlay.classList.remove("active");
                 setTimeout(() => overlay.remove(), 300);
             });
         }
     </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const openSettingsBtn = document.getElementById("openSettingsModalBtn");
+            const closeSettingsModal = document.getElementById("closeSettingsModal");
+            const settingsOverlay = document.getElementById("customSettingsOverlay");
+
+            const triggerNotificationModal = document.getElementById("triggerNotificationModal");
+            const notificationEmailModal = document.getElementById("notificationEmailModal");
+            const closeEmailModal = document.getElementById("closeEmailModal");
+            const saveEmailBtn = document.getElementById("saveEmailBtn");
+            const emailInp = document.getElementById("customerNotificationEmailInp");
+
+            const triggerLanguageModal = document.getElementById("triggerLanguageModal");
+            const languageSelectModal = document.getElementById("languageSelectModal");
+            const closeLangModal = document.getElementById("closeLangModal");
+            const langOptions = document.querySelectorAll(".lang-option");
+
+            // تشغيل وإغلاق القائمة الرئيسية
+            if(openSettingsBtn) openSettingsBtn.addEventListener("click", () => settingsOverlay.classList.add("active"));
+            if(closeSettingsModal) closeSettingsModal.addEventListener("click", () => settingsOverlay.classList.remove("active"));
+
+            // تشغيل نافذة ربط البريد وحفظ البيانات في الـ localStorage
+            if(triggerNotificationModal) {
+                triggerNotificationModal.addEventListener("click", () => {
+                    const savedEmail = localStorage.getItem("customer_notification_email");
+                    if (savedEmail) emailInp.value = savedEmail;
+                    notificationEmailModal.classList.add("active");
+                });
+            }
+            if(closeEmailModal) closeEmailModal.addEventListener("click", () => notificationEmailModal.classList.remove("active"));
+            
+            if(saveEmailBtn) {
+                saveEmailBtn.addEventListener("click", () => {
+                    const emailValue = emailInp.value.trim();
+                    if(emailValue === "" || !emailValue.includes("@")) {
+                        alert("⚠️ الرجاء إدخال بريد إلكتروني صحيح ومكتمل!");
+                        return;
+                    }
+                    localStorage.setItem("customer_notification_email", emailValue);
+                    alert("🟢 تم ربط بريدك الإلكتروني بنجاح! ستصلك إشعارات الاعتماد أو الرفض فوراً.");
+                    notificationEmailModal.classList.remove("active");
+                    console.log("تم تحديث بريد العميل إلى: " + emailValue);
+                });
+            }
+
+            // تشغيل شاشة اللغتين التبادلية
+            if(triggerLanguageModal) triggerLanguageModal.addEventListener("click", () => languageSelectModal.classList.add("active"));
+            if(closeLangModal) closeLangModal.addEventListener("click", () => languageSelectModal.classList.remove("active"));
+
+            langOptions.forEach(option => {
+                option.addEventListener("click", () => {
+                    langOptions.forEach(opt => {
+                        opt.classList.remove("selected");
+                        opt.querySelector(".material-symbols-rounded").textContent = "radio_button_unchecked";
+                        opt.querySelector(".material-symbols-rounded").style.color = "#ccc";
+                    });
+                    option.classList.add("selected");
+                    option.querySelector(".material-symbols-rounded").textContent = "check_circle";
+                    option.querySelector(".material-symbols-rounded").style.color = "#FF6600";
+                    
+                    // بدلاً من الكود القديم، ضع هذا الكود:
+// التبديل المباشر للغة
+let currentLang = localStorage.getItem("app_language") || "ar";
+let newLang = (currentLang === "ar") ? "en" : "ar";
+
+localStorage.setItem("app_language", newLang);
+applyLanguage(newLang);
+
+// إعادة رسم المنتجات لترجمة البيانات القادمة من القاعدة
+if (typeof renderProducts === 'function' && typeof allProducts !== 'undefined') {
+    renderProducts(allProducts);
+}
+
+// إغلاق أي نافذة لغات كانت مفتوحة
+const languageSelectModal = document.getElementById("languageSelectModal");
+if (languageSelectModal) {
+    languageSelectModal.classList.remove("active");
+}
+
+// إغلاق قائمة الإعدادات (إذا كنت تريد إغلاقها أيضاً عند تغيير اللغة)
+const settingsOverlay = document.getElementById("customSettingsOverlay");
+if (settingsOverlay) {
+    settingsOverlay.classList.remove("active");
+}
+
+
+                });
+            });
+
+            // إغلاق أي نافذة تلقائياً عند النقر خارج الصندوق الأبيض المفرغ
+            window.addEventListener("click", (e) => {
+                if (e.target === settingsOverlay) settingsOverlay.classList.remove("active");
+                if (e.target === notificationEmailModal) notificationEmailModal.classList.remove("active");
+                if (e.target === languageSelectModal) languageSelectModal.classList.remove("active");
+            });
+        });
+    </script>
+    
+    <script src="language.js"></script>
+
+    
+    
 </body>
 </html>

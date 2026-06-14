@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">إصدار الموقع والتحديثات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #ffffff; color: #333; margin: 0; padding: 0; }
+        
+        .header { padding: 20px; display: flex; align-items: center; gap: 20px; border-bottom: 1px solid #f0f0f0; background: #fff; position: sticky; top: 0; z-index: 100; }
+        .back-btn { background: #f8f8f8; border: none; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        
+        .content { padding: 30px; max-width: 600px; margin: auto; }
+        .update-box { text-align: center; margin-bottom: 30px; }
+        .version-badge { background: #FF6600; color: white; padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 14px; }
+        
+        .update-list { margin-top: 30px; }
+        .update-item { background: #fafafa; padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid #eee; display: flex; gap: 15px; align-items: flex-start; }
+        .update-item span { color: #FF6600; font-size: 24px; }
+        .update-item h4 { margin: 0 0 5px 0; font-size: 15px; }
+        .update-item p { margin: 0; font-size: 13px; color: #666; }
+
+        .footer-rights { margin-top: 50px; padding: 20px; text-align: center; border-top: 1px solid #f0f0f0; }
+        #rightsText { font-size: 12px; color: #999; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <button class="back-btn" onclick="window.history.back()">
+            <span class="material-symbols-rounded">arrow_forward</span>
+        </button>
+        <h3 id="updateHeader">إصدار الموقع</h3>
+    </header>
+
+    <div class="content">
+        <div class="update-box">
+            <span class="version-badge" id="versionBadge">إصدار 2.0.4</span>
+            <h1 id="updateMainTitle">آخر التحديثات</h1>
+        </div>
+
+        <div class="update-list">
+            <div class="update-item">
+                <span class="material-symbols-rounded">rocket_launch</span>
+                <div>
+                    <h4 id="u1Title">تحسين سرعة التصفح</h4>
+                    <p id="u1Desc">تم تحسين كفاءة تحميل الصور والبيانات لضمان تجربة أسرع بنسبة 40%.</p>
+                </div>
+            </div>
+            <div class="update-item">
+                <span class="material-symbols-rounded">security</span>
+                <div>
+                    <h4 id="u2Title">نظام حماية الطلبات</h4>
+                    <p id="u2Desc">تحديث خوارزمية إرسال إشعارات الطلبات لضمان وصول طلبك للإدارة بدقة متناهية.</p>
+                </div>
+            </div>
+            <div class="update-item">
+                <span class="material-symbols-rounded">translate</span>
+                <div>
+                    <h4 id="u3Title">دعم تعدد اللغات</h4>
+                    <p id="u3Desc">إضافة نظام الترجمة الفورية الديناميكية لجميع واجهات ونصوص المتجر.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-rights">
+            <p id="rightsText">© 2026 جميع الحقوق محفوظة لـ زين أون لاين</p>
+        </div>
+    </div>
+
+    <script>
+        const lang = localStorage.getItem("app_language") || "ar";
+        const content = {
+            ar: {
+                pageTitle: "إصدار الموقع والتحديثات", updateHeader: "إصدار الموقع", versionBadge: "إصدار 2.0.4",
+                updateMainTitle: "آخر التحديثات", u1Title: "تحسين سرعة التصفح", u1Desc: "تم تحسين كفاءة تحميل الصور والبيانات لضمان تجربة أسرع بنسبة 40%.",
+                u2Title: "نظام حماية الطلبات", u2Desc: "تحديث خوارزمية إرسال إشعارات الطلبات لضمان وصول طلبك للإدارة بدقة متناهية.",
+                u3Title: "دعم تعدد اللغات", u3Desc: "إضافة نظام الترجمة الفورية الديناميكية لجميع واجهات ونصوص المتجر.",
+                rightsText: "© 2026 جميع الحقوق محفوظة لـ زين أون لاين"
+            },
+            en: {
+                pageTitle: "Site Version & Updates", updateHeader: "Site Version", versionBadge: "Version 2.0.4",
+                updateMainTitle: "Latest Updates", u1Title: "Performance Optimization", u1Desc: "Improved image and data loading efficiency for 40% faster experience.",
+                u2Title: "Order Protection System", u2Desc: "Updated order notification algorithms to ensure accurate delivery to management.",
+                u3Title: "Multilingual Support", u3Desc: "Added dynamic real-time translation system for all store interfaces.",
+                rightsText: "© 2026 All rights reserved to Zain Online"
+            }
+        };
+
+        const data = content[lang];
+        document.documentElement.dir = (lang === "en") ? "ltr" : "rtl";
+        document.getElementById("pageTitle").textContent = data.pageTitle;
+        document.getElementById("updateHeader").textContent = data.updateHeader;
+        document.getElementById("versionBadge").textContent = data.versionBadge;
+        document.getElementById("updateMainTitle").textContent = data.updateMainTitle;
+        document.getElementById("u1Title").textContent = data.u1Title;
+        document.getElementById("u1Desc").textContent = data.u1Desc;
+        document.getElementById("u2Title").textContent = data.u2Title;
+        document.getElementById("u2Desc").textContent = data.u2Desc;
+        document.getElementById("u3Title").textContent = data.u3Title;
+        document.getElementById("u3Desc").textContent = data.u3Desc;
+        document.getElementById("rightsText").textContent = data.rightsText;
+    </script>
+</body>
+</html>
