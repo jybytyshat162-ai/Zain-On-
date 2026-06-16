@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">الإشعارات - زين أون لاين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f5f6fa;
+            padding: 0;
+            margin: 0;
+        }
+
+        /* رأس الصفحة */
+        .notif-header {
+            background: white;
+            padding: 16px 20px;
+            border-bottom: 1px solid #eee;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .notif-header h2 {
+            font-size: 18px;
+            color: #1a1a2e;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .notif-header h2 span { color: #FF6600; }
+        .back-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #FF6600;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .notif-count {
+            background: #FF6600;
+            color: white;
+            font-size: 12px;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        /* قائمة الإشعارات */
+        .notif-list {
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 30px;
+        }
+
+        /* بطاقة الإشعار */
+        .notif-card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-right: 4px solid transparent;
+            position: relative;
+        }
+        .notif-card:active { transform: scale(0.98); }
+        .notif-card.unread {
+            border-right-color: #FF6600;
+            background: #fffaf5;
+        }
+        .notif-card.read {
+            border-right-color: #ccc;
+            opacity: 0.8;
+        }
+
+        .notif-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .notif-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fff0e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FF6600;
+            flex-shrink: 0;
+        }
+        .notif-icon span { font-size: 20px; }
+        .notif-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            flex: 1;
+        }
+        .notif-time {
+            font-size: 11px;
+            color: #999;
+            white-space: nowrap;
+        }
+        .notif-preview {
+            font-size: 13px;
+            color: #666;
+            margin-top: 8px;
+            padding-right: 52px;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .notif-card.unread .notif-preview {
+            color: #333;
+        }
+
+        /* نقطة غير مقروء */
+        .unread-dot {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            width: 10px;
+            height: 10px;
+            background: #FF6600;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 0 0 2px #FF6600;
+        }
+        .notif-card.read .unread-dot { display: none; }
+
+        /* نافذة التفاصيل المنبثقة */
+        .detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .detail-overlay.active { display: flex; }
+        .detail-box {
+            background: white;
+            border-radius: 24px;
+            padding: 28px 24px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .detail-box .close-detail {
+            background: #f5f6fa;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            float: left;
+            color: #666;
+            font-size: 20px;
+        }
+        .detail-box .close-detail:active { transform: scale(0.9); }
+        .detail-box .detail-icon {
+            text-align: center;
+            font-size: 48px;
+            color: #FF6600;
+            margin-bottom: 12px;
+        }
+        .detail-box h3 {
+            font-size: 18px;
+            color: #1a1a2e;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+        .detail-box .detail-time {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-bottom: 16px;
+        }
+        .detail-box .detail-body {
+            font-size: 15px;
+            color: #333;
+            line-height: 1.8;
+            background: #f8f9fa;
+            padding: 16px;
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+
+        /* حالة عدم وجود إشعارات */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-state span {
+            font-size: 64px;
+            color: #ddd;
+        }
+        .empty-state h4 {
+            font-size: 18px;
+            color: #666;
+            margin-top: 12px;
+        }
+        .empty-state p {
+            font-size: 14px;
+            color: #aaa;
+            margin-top: 6px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* تحسينات للهواتف */
+        @media (max-width: 480px) {
+            .notif-card { padding: 14px; }
+            .notif-preview { padding-right: 0; }
+            .detail-box { padding: 20px 16px; }
+        }
+
+        /* تحديد الكل كمقروء */
+        .mark-all-btn {
+            background: none;
+            border: none;
+            color: #FF6600;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 5px 12px;
+            border-radius: 20px;
+            background: #fff0e6;
+            font-family: 'Cairo', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .mark-all-btn:active { transform: scale(0.95); }
+        .mark-all-btn span { font-size: 18px; }
+    </style>
+</head>
+<body>
+
+    <!-- رأس الصفحة -->
+    <div class="notif-header">
+        <button class="back-btn" onclick="window.location.href='index.html'">
+            <span class="material-symbols-rounded">arrow_forward</span>
+        </button>
+        <h2>
+            <span class="material-symbols-rounded">notifications</span>
+            <span id="notifHeaderTitle">الإشعارات</span>
+            <span class="notif-count" id="notifCount">0</span>
+        </h2>
+        <button class="mark-all-btn" id="markAllReadBtn">
+            <span class="material-symbols-rounded">done_all</span>
+            <span id="markAllReadText">قراءة الكل</span>
+        </button>
+    </div>
+
+    <!-- قائمة الإشعارات -->
+    <div class="notif-list" id="notifList">
+        <!-- سيتم تحميل الإشعارات من Firebase هنا -->
+        <div class="empty-state" id="emptyState">
+            <span class="material-symbols-rounded">notifications_off</span>
+            <h4 id="emptyTitle">لا توجد إشعارات جديدة</h4>
+            <p id="emptyDesc">ستظهر الإشعارات هنا عند إرسال تحديثات جديدة</p>
+        </div>
+    </div>
+
+    <!-- نافذة التفاصيل المنبثقة -->
+    <div class="detail-overlay" id="detailOverlay">
+        <div class="detail-box">
+            <button class="close-detail" id="closeDetail">
+                <span class="material-symbols-rounded">close</span>
+            </button>
+            <div class="detail-icon">
+                <span class="material-symbols-rounded" style="font-size:48px;">notifications_active</span>
+            </div>
+            <h3 id="detailTitle">عنوان الإشعار</h3>
+            <div class="detail-time" id="detailTime">منذ دقيقة</div>
+            <div class="detail-body" id="detailBody">
+                تفاصيل الإشعار هنا...
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUmiSv1NdOWCZhJCGab6in028MPhNjFgE",
+            databaseURL: "https://zain-online-938c5-default-rtdb.firebaseio.com",
+            projectId: "zain-online-938c5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // ==== نظام الترجمة ====
+        const lang = localStorage.getItem("app_language") || "ar";
+        const translations = {
+            ar: {
+                pageTitle: "الإشعارات - زين أون لاين",
+                notifHeader: "الإشعارات",
+                markAllRead: "قراءة الكل",
+                emptyTitle: "لا توجد إشعارات جديدة",
+                emptyDesc: "ستظهر الإشعارات هنا عند إرسال تحديثات جديدة",
+                detailDefaultTitle: "عنوان الإشعار",
+                detailDefaultBody: "تفاصيل الإشعار هنا...",
+                detailDefaultTime: "منذ دقيقة",
+                now: "الآن",
+                ago: "منذ",
+                day: "يوم",
+                days: "أيام",
+                hour: "ساعة",
+                hours: "ساعات",
+                minute: "دقيقة",
+                minutes: "دقائق",
+                justNow: "الآن"
+            },
+            en: {
+                pageTitle: "Notifications - Zain Online",
+                notifHeader: "Notifications",
+                markAllRead: "Mark all as read",
+                emptyTitle: "No new notifications",
+                emptyDesc: "Notifications will appear here when new updates are sent",
+                detailDefaultTitle: "Notification Title",
+                detailDefaultBody: "Notification details here...",
+                detailDefaultTime: "A minute ago",
+                now: "Now",
+                ago: "ago",
+                day: "day",
+                days: "days",
+                hour: "hour",
+                hours: "hours",
+                minute: "minute",
+                minutes: "minutes",
+                justNow: "Just now"
+            }
+        };
+
+        const t = translations[lang] || translations.ar;
+
+        // تطبيق الترجمة على العناصر الثابتة
+        document.getElementById("pageTitle").textContent = t.pageTitle;
+        document.getElementById("notifHeaderTitle").textContent = t.notifHeader;
+        document.getElementById("markAllReadText").textContent = t.markAllRead;
+        document.getElementById("emptyTitle").textContent = t.emptyTitle;
+        document.getElementById("emptyDesc").textContent = t.emptyDesc;
+
+        // ==== تحميل الإشعارات ====
+        const notifList = document.getElementById('notifList');
+        const emptyState = document.getElementById('emptyState');
+        const notifCount = document.getElementById('notifCount');
+
+        // هيكل الإشعارات:
+        // notifications/
+        //   {id}/
+        //     title: "عنوان"
+        //     body: "نص الرسالة"
+        //     timestamp: 123456789
+        //     read: false  (عند قراءة الإشعار تصبح true)
+
+        function loadNotifications() {
+            const notifsRef = ref(db, 'notifications');
+            onValue(notifsRef, async (snapshot) => {
+                const data = snapshot.val();
+                const notifElements = [];
+                let unreadCount = 0;
+
+                if (data) {
+                    // ترتيب الإشعارات من الأحدث للأقدم
+                    const notifIds = Object.keys(data).sort((a, b) => data[b].timestamp - data[a].timestamp);
+
+                    notifIds.forEach((id) => {
+                        const notif = data[id];
+                        if (!notif.read) unreadCount++;
+
+                        const card = document.createElement('div');
+                        card.className = `notif-card ${notif.read ? 'read' : 'unread'}`;
+                        card.dataset.id = id;
+
+                        // نقطة غير مقروء
+                        if (!notif.read) {
+                            const dot = document.createElement('div');
+                            dot.className = 'unread-dot';
+                            card.appendChild(dot);
+                        }
+
+                        // وقت الإشعار
+                        const timeStr = notif.timestamp ? formatTime(notif.timestamp) : t.justNow;
+
+                        card.innerHTML = `
+                            <div class="notif-card-header">
+                                <div class="notif-icon">
+                                    <span class="material-symbols-rounded">${notif.icon || 'notifications'}</span>
+                                </div>
+                                <div class="notif-title">${notif.title || t.detailDefaultTitle}</div>
+                                <div class="notif-time">${timeStr}</div>
+                            </div>
+                            <div class="notif-preview">${notif.body || t.detailDefaultBody}</div>
+                        `;
+
+                        // عند الضغط على الإشعار نفتح التفاصيل
+                        card.addEventListener('click', () => {
+                            openDetail(id, notif);
+                        });
+
+                        notifElements.push(card);
+                    });
+                }
+
+                // تحديث القائمة
+                notifList.innerHTML = '';
+                if (notifElements.length > 0) {
+                    notifElements.forEach(el => notifList.appendChild(el));
+                    emptyState.style.display = 'none';
+                } else {
+                    emptyState.style.display = 'block';
+                }
+
+                // تحديث العداد
+                notifCount.textContent = unreadCount;
+                
+                // إذا كان هناك إشعارات غير مقروءة، نخزن العدد في localStorage
+                // عشان نستخدمها في الصفحة الرئيسية لعرض النقطة الحمراء
+                localStorage.setItem('unread_notifications_count', unreadCount);
+                
+                // تحديث النقطة في الصفحة الرئيسية إذا كانت مفتوحة
+                updateMainPageBadge(unreadCount);
+            });
+        }
+
+        // ==== فتح نافذة التفاصيل ====
+        const detailOverlay = document.getElementById('detailOverlay');
+        const detailTitle = document.getElementById('detailTitle');
+        const detailBody = document.getElementById('detailBody');
+        const detailTime = document.getElementById('detailTime');
+        const closeDetail = document.getElementById('closeDetail');
+
+        async function openDetail(id, notif) {
+            // عرض التفاصيل
+            detailTitle.textContent = notif.title || t.detailDefaultTitle;
+            detailBody.textContent = notif.body || t.detailDefaultBody;
+            detailTime.textContent = notif.timestamp ? formatTime(notif.timestamp) : t.justNow;
+            detailOverlay.classList.add('active');
+
+            // إذا كان الإشعار غير مقروء، نحدده كمقروء
+            if (!notif.read) {
+                try {
+                    await update(ref(db, `notifications/${id}`), { read: true });
+                    // تحديث العداد محلياً
+                    const currentUnread = parseInt(localStorage.getItem('unread_notifications_count') || '0');
+                    if (currentUnread > 0) {
+                        localStorage.setItem('unread_notifications_count', currentUnread - 1);
+                        updateMainPageBadge(currentUnread - 1);
+                    }
+                    // إعادة تحميل القائمة لتحديث الواجهة
+                    // علىValue هيتشغل تلقائياً
+                } catch (e) {
+                    console.error('خطأ في تحديث حالة القراءة:', e);
+                }
+            }
+        }
+
+        closeDetail.addEventListener('click', () => {
+            detailOverlay.classList.remove('active');
+        });
+
+        // إغلاق التفاصيل عند الضغط خارج الصندوق
+        detailOverlay.addEventListener('click', (e) => {
+            if (e.target === detailOverlay) {
+                detailOverlay.classList.remove('active');
+            }
+        });
+
+        // ==== تحديد الكل كمقروء ====
+        document.getElementById('markAllReadBtn').addEventListener('click', async () => {
+            const notifsRef = ref(db, 'notifications');
+            const snapshot = await get(notifsRef);
+            const data = snapshot.val();
+            
+            if (data) {
+                const updates = {};
+                Object.keys(data).forEach(id => {
+                    if (!data[id].read) {
+                        updates[`${id}/read`] = true;
+                    }
+                });
+                
+                if (Object.keys(updates).length > 0) {
+                    await update(ref(db, 'notifications'), updates);
+                    localStorage.setItem('unread_notifications_count', '0');
+                    updateMainPageBadge(0);
+                }
+            }
+        });
+
+        // ==== تحديث النقطة في الصفحة الرئيسية ====
+        function updateMainPageBadge(count) {
+            // ✅ استخدم نفس المفتاح المستخدم في الصفحة الرئيسية
+            localStorage.setItem('unread_notifications_count', String(count));
+            
+            // إرسال إشارة للصفحات الأخرى
+            try {
+                const event = new StorageEvent('storage', {
+                    key: 'unread_notifications_count',
+                    newValue: String(count)
+                });
+                window.dispatchEvent(event);
+            } catch (e) {
+                console.log('⚠️ خطأ في إرسال الإشارة:', e);
+            }
+            
+            // إذا كانت الصفحة الرئيسية مفتوحة، نحدّثها مباشرة
+            try {
+                if (window.opener && !window.opener.closed) {
+                    if (typeof window.opener.updateNotificationBadge === 'function') {
+                        window.opener.updateNotificationBadge();
+                    }
+                }
+            } catch(e) {
+                console.log('⚠️ لا يمكن الوصول للصفحة الرئيسية:', e);
+            }
+            
+            console.log('🔴 تم تحديث العداد إلى:', count);
+        }
+
+        // ==== دالة تنسيق الوقت ====
+        function formatTime(timestamp) {
+            const now = Date.now();
+            const diff = now - timestamp;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+
+            if (days > 0) {
+                return `${t.ago} ${days} ${days > 1 ? t.days : t.day}`;
+            }
+            if (hours > 0) {
+                return `${t.ago} ${hours} ${hours > 1 ? t.hours : t.hour}`;
+            }
+            if (minutes > 0) {
+                return `${t.ago} ${minutes} ${minutes > 1 ? t.minutes : t.minute}`;
+            }
+            return t.justNow;
+        }
+
+        // ==== بدء التحميل ====
+        loadNotifications();
+
+        // ==== استقبال التحديثات من الصفحة الرئيسية ====
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'unread_notifications_count') {
+                // تحديث العداد فوراً
+                const count = parseInt(e.newValue || '0');
+                notifCount.textContent = count;
+            }
+        });
+    </script>
+
+    <script>
+        // أضف هذا الكود في نهاية index6.html بعد تحميل الإشعارات
+        // هذه الدالة تحدث العداد في localStorage وتُرسل إشارة للصفحة الرئيسية
+
+        function updateBadgeCount(count) {
+            localStorage.setItem('unread_notifications_count', String(count));
+            
+            // إرسال إشارة للصفحات الأخرى
+            try {
+                const event = new StorageEvent('storage', {
+                    key: 'unread_notifications_count',
+                    newValue: String(count)
+                });
+                window.dispatchEvent(event);
+            } catch(e) {}
+            
+            // لو الصفحة الرئيسية مفتوحة، نحدّثها مباشرة
+            if (window.opener && !window.opener.closed) {
+                try {
+                    window.opener.updateNotificationBadge();
+                } catch(e) {}
+            }
+        }
+    </script>
+
+</body>
+</html>
