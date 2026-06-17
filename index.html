@@ -124,8 +124,7 @@
         .lang-option.selected { border-color: #FF6600; background: #fff8ed; }
         .lang-text { font-family: 'Cairo', sans-serif; font-size: 14px; font-weight: 600; color: #333; }
 
-        /* توزيع الأزرار الأربعة بالتساوي في شريط التنقل */
-        .bottom-nav { display: grid !important; grid-template-columns: repeat(4, 1fr) !important; }
+
         
         
 
@@ -697,28 +696,40 @@
         </div>
     </div>
 
+<nav class="bottom-nav">
+    <!-- 1. زر الرئيسية -->
+    <a href="#" class="nav-btn" data-page="home">
+        <span class="material-symbols-rounded">home</span>
+        <span>الرئيسية</span>
+    </a>
 
-    <nav class="bottom-nav">
-        <button class="nav-btn active" data-page="home">
-            <span class="material-symbols-rounded">home</span>
-            <span>الرئيسية</span>
-        </button>
+    <!-- 2. زر الدردشة -->
+    <a href="#" class="nav-btn" data-page="chat">
+        <span class="material-symbols-rounded">chat</span>
+        <span>الدردشة</span>
+    </a>
 
-        <button class="nav-btn" data-page="chat">
-            <span class="material-symbols-rounded">chat</span>
-            <span>الدردشة</span>
-        </button>
+    <!-- 3. زر إنشاء حساب (المنتصف - خاص) -->
+   <a href="signup.html" class="nav-btn nav-btn-special" id="signupNavBtn">
+    <div class="special-icon-wrapper">
+        <span class="material-symbols-rounded" id="signupIcon">person_add</span>
+    </div>
+    <span class="special-label" id="signupLabel">حساب جديد</span>
+</a>
 
-        <button class="nav-btn" data-page="cart">
-            <span class="material-symbols-rounded">shopping_cart</span>
-            <span>العربة</span>
-        </button>
+    <!-- 4. زر العربة -->
+    <a href="#" class="nav-btn" data-page="cart">
+        <span class="material-symbols-rounded">shopping_cart</span>
+        <span>العربة</span>
+    </a>
 
-        <button class="nav-btn" id="openSettingsModalBtn">
-            <span class="material-symbols-rounded">settings</span>
-            <span>الإعدادات</span>
-        </button>
-    </nav>
+    <!-- 5. زر الإعدادات -->
+    <a href="#" class="nav-btn" id="openSettingsModalBtn">
+        <span class="material-symbols-rounded">settings</span>
+        <span>الإعدادات</span>
+    </a>
+</nav>
+
 
     <script type="module" src="script.js"></script>
     
@@ -1107,8 +1118,249 @@ onValue(ref(db, "notifications"), (snapshot) => {
     if (window.updateNotificationBadge) {
         window.updateNotificationBadge();
     }
+    
 });
+
+
+
+// إضافة إشارة active لزر إنشاء حساب عند فتح صفحة signup
+document.addEventListener('DOMContentLoaded', function() {
+    const signupBtn = document.getElementById('signupNavBtn');
+    
+    // إذا كان الصفحة الحالية هي signup
+    if (window.location.pathname.includes('signup.html')) {
+        signupBtn.classList.add('active');
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </script>
+
+
+
+
+
+
+<script>
+// ===== تحديث زر الحساب فوراً وبقوة =====
+// ===== تحديث زر الحساب =====
+// ===== تحديث زر الحساب =====
+// ===== تحديث زر الحساب (3 حالات) =====
+// ===== تحديث زر الحساب =====
+function updateAccountButton() {
+    const userId = localStorage.getItem('zain_user_id');
+    const btn = document.getElementById('signupNavBtn');
+    const icon = document.getElementById('signupIcon');
+    const label = document.getElementById('signupLabel');
+    
+    if (!btn || !icon || !label) {
+        console.log('⚠️ العناصر غير موجودة');
+        return;
+    }
+    
+    console.log('🔍 تحديث الزر - userId:', userId);
+    
+    if (userId) {
+        icon.textContent = 'person';
+        label.textContent = 'حسابي';
+        btn.href = 'profile.html';
+        btn.className = 'nav-btn nav-btn-special logged-in';
+        console.log('✅ زر "حسابي"');
+    } else {
+        icon.textContent = 'login';
+        label.textContent = 'تسجيل دخول';
+        btn.href = 'login.html';
+        btn.className = 'nav-btn nav-btn-special logged-out';
+        console.log('✅ زر "تسجيل دخول"');
+    }
+}
+
+// ===== الاستماع لإشارات BroadcastChannel =====
+try {
+    const channel = new BroadcastChannel('auth_channel');
+    channel.onmessage = function(event) {
+        console.log('📨 استقبال إشارة BroadcastChannel:', event.data);
+        if (event.data.type === 'logout') {
+            console.log('🚪 تم استقبال إشارة تسجيل الخروج');
+            // نضبط localStorage
+            localStorage.removeItem('zain_user_id');
+            localStorage.setItem('logout_signal', 'true');
+            // تحديث الزر
+            setTimeout(updateAccountButton, 50);
+            // إظهار إشعار
+            showLogoutNotification();
+        }
+    };
+    console.log('✅ BroadcastChannel جاهز');
+} catch (e) {
+    console.log('⚠️ BroadcastChannel غير مدعوم');
+}
+
+// ===== مراقبة localStorage =====
+window.addEventListener('storage', function(e) {
+    console.log('🔄 حدث storage - المفتاح:', e.key, 'القيمة:', e.newValue);
+    
+    if (e.key === 'zain_user_id') {
+        console.log('🔄 تغيير في zain_user_id');
+        setTimeout(updateAccountButton, 100);
+    }
+    
+    if (e.key === 'logout_signal' || e.key === 'logout_timestamp') {
+        console.log('🚪 تم استقبال إشارة تسجيل الخروج من localStorage');
+        // نتأكد من حذف userId
+        if (localStorage.getItem('zain_user_id')) {
+            localStorage.removeItem('zain_user_id');
+        }
+        setTimeout(updateAccountButton, 100);
+        // نمسح الإشارة
+        setTimeout(() => {
+            localStorage.removeItem('logout_signal');
+            localStorage.removeItem('logout_timestamp');
+        }, 500);
+    }
+});
+
+// ===== مراقبة sessionStorage =====
+const sessionCheck = setInterval(function() {
+    const signal = sessionStorage.getItem('logout_signal');
+    if (signal === 'true') {
+        console.log('🚪 تم اكتشاف إشارة في sessionStorage');
+        sessionStorage.removeItem('logout_signal');
+        if (localStorage.getItem('zain_user_id')) {
+            localStorage.removeItem('zain_user_id');
+        }
+        setTimeout(updateAccountButton, 100);
+    }
+}, 200);
+
+// ===== إشعار تسجيل الخروج =====
+function showLogoutNotification() {
+    let notif = document.getElementById('logoutNotification');
+    if (!notif) {
+        notif = document.createElement('div');
+        notif.id = 'logoutNotification';
+        notif.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #3b82f6;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 16px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.3);
+            z-index: 99999;
+            direction: rtl;
+            animation: slideDown 0.5s ease;
+        `;
+        document.body.appendChild(notif);
+        
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+                to { transform: translateX(-50%) translateY(0); opacity: 1; }
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    notif.textContent = '🚪 تم تسجيل الخروج بنجاح';
+    notif.style.animation = 'slideDown 0.5s ease';
+    notif.style.display = 'block';
+    
+    setTimeout(() => {
+        notif.style.animation = 'fadeOut 0.5s ease';
+        setTimeout(() => {
+            notif.style.display = 'none';
+        }, 500);
+    }, 3000);
+}
+
+// ===== تنفيذ عند تحميل الصفحة =====
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔄 DOMContentLoaded');
+    // نتحقق من إشارات تسجيل الخروج
+    const logoutSignal = localStorage.getItem('logout_signal');
+    if (logoutSignal === 'true') {
+        localStorage.removeItem('zain_user_id');
+        localStorage.removeItem('logout_signal');
+    }
+    setTimeout(updateAccountButton, 300);
+});
+
+// ===== تنفيذ فوراً =====
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(updateAccountButton, 200);
+}
+
+// ===== مراقبة عند عودة التركيز =====
+window.addEventListener('focus', function() {
+    console.log('🔄 الصفحة حصلت على focus');
+    setTimeout(updateAccountButton, 200);
+});
+
+// ===== جعل الدالة متاحة عالمياً =====
+window.updateAccountButton = updateAccountButton;
+</script>
+
+
+
+
+
+
+<script>
+    // ===== ✅ ضع هنا الكود =====
+    (function checkLogoutSignal() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const logoutSignal = urlParams.get('logout');
+        
+        if (logoutSignal) {
+            console.log('🚪 تم استقبال إشارة تسجيل الخروج من الرابط');
+            localStorage.removeItem('zain_user_id');
+            localStorage.removeItem('zain_user_name');
+            localStorage.removeItem('zain_user_email');
+            localStorage.removeItem('zain_user_phone');
+            
+            const newUrl = window.location.pathname;
+            window.history.replaceState({}, document.title, newUrl);
+            
+            setTimeout(updateAccountButton, 100);
+        }
+    })();
+    // ===== انتهى الكود =====
+
+    // باقي الكود القديم...
+    let deferredPrompt;
+    // ...الخ
+</script>
+
+
 
 </body>
 </html>

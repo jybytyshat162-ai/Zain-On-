@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">تسجيل دخول | زين أون لاين</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(145deg, #f8f9fa, #eef0f2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .login-card {
+            background: #ffffff;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 32px;
+            padding: 36px 28px 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(255, 102, 0, 0.06), transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .login-card::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: -80px;
+            width: 220px;
+            height: 220px;
+            background: radial-gradient(circle, rgba(255, 102, 0, 0.04), transparent 70%);
+            border-radius: 50%;
+        }
+        
+        .icon-container {
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .icon-wrapper {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #FF6600, #ff822e);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            box-shadow: 0 8px 30px rgba(255, 102, 0, 0.3);
+            position: relative;
+        }
+        
+        .icon-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, rgba(255, 102, 0, 0.15), transparent);
+            z-index: -1;
+        }
+        
+        .icon-wrapper span {
+            color: #ffffff;
+            font-size: 36px;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .login-card h1 {
+            font-size: 24px;
+            font-weight: 900;
+            color: #1a1a2e;
+            text-align: center;
+            margin-bottom: 4px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-card .subtitle {
+            font-size: 13px;
+            color: #888;
+            text-align: center;
+            margin-bottom: 28px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-card .subtitle span {
+            color: #FF6600;
+            font-weight: 600;
+        }
+        
+        .login-options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .login-option-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #e8eaed;
+            border-radius: 14px;
+            background: #fafbfc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Cairo', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: #888;
+            text-align: center;
+        }
+        
+        .login-option-btn.active {
+            border-color: #FF6600;
+            background: #fff8ed;
+            color: #FF6600;
+        }
+        
+        .login-option-btn:active {
+            transform: scale(0.97);
+        }
+        
+        .login-option-btn span {
+            font-size: 18px;
+            vertical-align: middle;
+            margin-left: 6px;
+        }
+        
+        .input-group {
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #444;
+            margin-bottom: 5px;
+        }
+        
+        .input-group .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e8eaed;
+            border-radius: 16px;
+            font-size: 14px;
+            font-family: 'Cairo', sans-serif;
+            outline: none;
+            transition: all 0.3s ease;
+            background: #fafbfc;
+            color: #1a1a2e;
+            direction: rtl;
+        }
+        
+        .input-group .input-field:focus {
+            border-color: #FF6600;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(255, 102, 0, 0.08);
+            transform: translateY(-1px);
+        }
+        
+        .input-group .input-field.success {
+            border-color: #10b981;
+            background: #f0fdf6;
+        }
+        
+        .input-group .input-field.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+        
+        .input-group .input-wrapper {
+            position: relative;
+        }
+        
+        .input-group .input-wrapper .field-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #b0b3b8;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .input-group .input-wrapper .input-field:focus ~ .field-icon {
+            color: #FF6600;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(145deg, #FF6600, #e65c00);
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 800;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 24px rgba(255, 102, 0, 0.3);
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.97);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .btn-primary .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .btn-primary.loading .spinner {
+            display: inline-block;
+        }
+        
+        .btn-primary.loading .btn-text {
+            display: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .footer-links a {
+            color: #888;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .footer-links a:hover {
+            color: #FF6600;
+        }
+        
+        .footer-links .signup-link {
+            color: #FF6600;
+        }
+        
+        .footer-links .signup-link:hover {
+            color: #e65c00;
+        }
+        
+        /* ===== النوافذ المنبثقة الفخمة ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 99999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; }
+        
+        .modal-box {
+            background: white;
+            border-radius: 28px;
+            padding: 32px 28px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+            text-align: center;
+            position: relative;
+        }
+        
+        .modal-box .modal-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+        }
+        .modal-box .modal-icon.success {
+            background: #e6f7ed;
+            color: #10b981;
+        }
+        .modal-box .modal-icon.error {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+        .modal-box .modal-icon.warning {
+            background: #fff0e6;
+            color: #FF6600;
+        }
+        .modal-box .modal-icon span { font-size: 40px; }
+        
+        .modal-box h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1a1a2e;
+            margin-bottom: 6px;
+        }
+        .modal-box p {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .modal-box .modal-btn {
+            padding: 12px 32px;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #fff;
+        }
+        .modal-box .modal-btn.success {
+            background: linear-gradient(145deg, #10b981, #059669);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.3);
+        }
+        .modal-box .modal-btn.error {
+            background: linear-gradient(145deg, #dc2626, #b91c1c);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+        }
+        .modal-box .modal-btn.warning {
+            background: linear-gradient(145deg, #FF6600, #e65c00);
+            box-shadow: 0 6px 20px rgba(255, 102, 0, 0.3);
+        }
+        .modal-box .modal-btn:active { transform: scale(0.97); }
+        
+        .modal-box .modal-close-btn {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: #f5f6fa;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #666;
+            transition: all 0.3s ease;
+        }
+        .modal-box .modal-close-btn:hover { background: #fee2e2; color: #dc2626; }
+        .modal-box .modal-close-btn span { font-size: 18px; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { transform: translateY(30px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 28px 20px 24px;
+                border-radius: 24px;
+            }
+            
+            .icon-wrapper {
+                width: 68px;
+                height: 68px;
+            }
+            
+            .icon-wrapper span {
+                font-size: 30px;
+            }
+            
+            .login-card h1 {
+                font-size: 20px;
+            }
+            
+            .login-option-btn {
+                font-size: 12px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card" id="loginCard">
+    <div class="icon-container">
+        <div class="icon-wrapper">
+            <span class="material-symbols-rounded">login</span>
+        </div>
+    </div>
+    
+    <h1 id="welcomeTitle">مرحباً بعودتك</h1>
+    <p class="subtitle" id="subtitleText">سجل دخولك للاستمتاع بتجربة تسوق <span>فاخرة وآمنة</span></p>
+    
+    <div class="login-options">
+        <button class="login-option-btn active" data-type="email" id="emailOption">
+            <span class="material-symbols-rounded">mail</span>
+            <span id="emailOptionText">البريد الإلكتروني</span>
+        </button>
+        <button class="login-option-btn" data-type="phone" id="phoneOption">
+            <span class="material-symbols-rounded">phone_android</span>
+            <span id="phoneOptionText">رقم الجوال</span>
+        </button>
+    </div>
+    
+    <form id="loginForm" autocomplete="off">
+        <div class="input-group">
+            <label id="inputLabel">البريد الإلكتروني</label>
+            <div class="input-wrapper">
+                <input type="text" id="loginInput" class="input-field" placeholder="example@gmail.com" required>
+                <span class="field-icon material-symbols-rounded" id="inputIcon">mail</span>
+            </div>
+        </div>
+        
+        <div class="input-group">
+            <label id="passwordLabel">كلمة المرور</label>
+            <div class="input-wrapper">
+                <input type="password" id="passwordInput" class="input-field" placeholder="••••••••" required>
+                <span class="field-icon material-symbols-rounded">lock</span>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn-primary" id="submitBtn">
+            <span class="spinner"></span>
+            <span class="btn-text" id="submitText">تسجيل الدخول</span>
+            <span class="material-symbols-rounded" style="font-size: 18px;">arrow_forward</span>
+        </button>
+    </form>
+    
+    <div class="footer-links">
+        <a href="index.html" id="backLink">
+            <span class="material-symbols-rounded" style="font-size: 18px;">arrow_forward</span>
+            <span id="backText">العودة للرئيسية</span>
+        </a>
+        <a href="signup.html" class="signup-link" id="signupLink">
+            <span id="noAccountText">ليس لديك حساب؟</span> <strong id="signupStrong">إنشاء حساب</strong>
+        </a>
+    </div>
+</div>
+
+<!-- ===== النوافذ المنبثقة الفخمة ===== -->
+<div class="modal-overlay" id="errorModal">
+    <div class="modal-box">
+        <button class="modal-close-btn" onclick="closeModal('errorModal')">
+            <span class="material-symbols-rounded">close</span>
+        </button>
+        <div class="modal-icon error">
+            <span class="material-symbols-rounded">error</span>
+        </div>
+        <h3 id="errorTitle">⚠️ خطأ</h3>
+        <p id="errorMessageText">حدث خطأ أثناء تسجيل الدخول</p>
+        <button class="modal-btn error" onclick="closeModal('errorModal')" id="errorBtn">حسناً</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="successModal">
+    <div class="modal-box">
+        <button class="modal-close-btn" onclick="closeModal('successModal')">
+            <span class="material-symbols-rounded">close</span>
+        </button>
+        <div class="modal-icon success">
+            <span class="material-symbols-rounded">check_circle</span>
+        </div>
+        <h3 id="loginSuccessTitle">🎉 تم تسجيل الدخول بنجاح!</h3>
+        <p id="loginSuccessDesc">مرحباً بك في زين أون لاين</p>
+        <button class="modal-btn success" onclick="closeModal('successModal'); window.location.href='index.html';" id="goToStoreBtn">الذهاب للمتجر</button>
+    </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, get, update, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAUmiSv1NdOWCZhJCGab6in028MPhNjFgE",
+    authDomain: "zain-online-938c5.firebaseapp.com",
+    databaseURL: "https://zain-online-938c5-default-rtdb.firebaseio.com",
+    projectId: "zain-online-938c5",
+    storageBucket: "zain-online-938c5.firebasestorage.app",
+    messagingSenderId: "76098093405",
+    appId: "1:76098093405:web:672fec6028e89e434b68b4"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ===== قاموس اللغة =====
+const lang = localStorage.getItem('app_language') || 'ar';
+
+const translations = {
+    ar: {
+        pageTitle: 'تسجيل دخول | زين أون لاين',
+        welcomeTitle: 'مرحباً بعودتك',
+        subtitle: 'سجل دخولك للاستمتاع بتجربة تسوق فاخرة وآمنة',
+        emailOption: 'البريد الإلكتروني',
+        phoneOption: 'رقم الجوال',
+        inputLabel: 'البريد الإلكتروني',
+        passwordLabel: 'كلمة المرور',
+        submitText: 'تسجيل الدخول',
+        backText: 'العودة للرئيسية',
+        noAccount: 'ليس لديك حساب؟',
+        signup: 'إنشاء حساب',
+        errorTitle: '⚠️ خطأ',
+        errorBtn: 'حسناً',
+        loginSuccessTitle: '🎉 تم تسجيل الدخول بنجاح!',
+        loginSuccessDesc: 'مرحباً بك في زين أون لاين',
+        goToStore: 'الذهاب للمتجر',
+        errorEmpty: 'الرجاء إدخال جميع البيانات المطلوبة',
+        errorEmail: 'الرجاء إدخال بريد إلكتروني صحيح',
+        errorPhone: 'الرجاء إدخال رقم جوال صحيح (9 أرقام)',
+        errorNotFound: '❌ لم يتم العثور على حساب بهذه البيانات',
+        errorPassword: '❌ كلمة المرور غير صحيحة',
+        errorGeneral: 'حدث خطأ أثناء تسجيل الدخول'
+    },
+    en: {
+        pageTitle: 'Login | Zain Online',
+        welcomeTitle: 'Welcome Back',
+        subtitle: 'Login to enjoy a luxury and secure shopping experience',
+        emailOption: 'Email Address',
+        phoneOption: 'Phone Number',
+        inputLabel: 'Email Address',
+        passwordLabel: 'Password',
+        submitText: 'Login',
+        backText: 'Back to Home',
+        noAccount: "Don't have an account?",
+        signup: 'Sign Up',
+        errorTitle: '⚠️ Error',
+        errorBtn: 'OK',
+        loginSuccessTitle: '🎉 Login Successful!',
+        loginSuccessDesc: 'Welcome to Zain Online',
+        goToStore: 'Go to Store',
+        errorEmpty: 'Please enter all required data',
+        errorEmail: 'Please enter a valid email address',
+        errorPhone: 'Please enter a valid phone number (9 digits)',
+        errorNotFound: '❌ No account found with this data',
+        errorPassword: '❌ Incorrect password',
+        errorGeneral: 'An error occurred during login'
+    }
+};
+
+const t = translations[lang] || translations.ar;
+
+// ===== تطبيق الترجمة =====
+document.getElementById('pageTitle').textContent = t.pageTitle;
+document.getElementById('welcomeTitle').textContent = t.welcomeTitle;
+document.getElementById('subtitleText').innerHTML = t.subtitle.replace('فاخرة وآمنة', '<span>فاخرة وآمنة</span>');
+document.getElementById('emailOptionText').textContent = t.emailOption;
+document.getElementById('phoneOptionText').textContent = t.phoneOption;
+document.getElementById('inputLabel').textContent = t.inputLabel;
+document.getElementById('passwordLabel').textContent = t.passwordLabel;
+document.getElementById('submitText').textContent = t.submitText;
+document.getElementById('backText').textContent = t.backText;
+document.getElementById('noAccountText').textContent = t.noAccount;
+document.getElementById('signupStrong').textContent = t.signup;
+document.getElementById('errorTitle').textContent = t.errorTitle;
+document.getElementById('errorBtn').textContent = t.errorBtn;
+document.getElementById('loginSuccessTitle').textContent = t.loginSuccessTitle;
+document.getElementById('loginSuccessDesc').textContent = t.loginSuccessDesc;
+document.getElementById('goToStoreBtn').textContent = t.goToStore;
+
+// ===== عناصر الصفحة =====
+const form = document.getElementById('loginForm');
+const submitBtn = document.getElementById('submitBtn');
+const loginInput = document.getElementById('loginInput');
+const passwordInput = document.getElementById('passwordInput');
+const inputLabel = document.getElementById('inputLabel');
+const inputIcon = document.getElementById('inputIcon');
+const emailOption = document.getElementById('emailOption');
+const phoneOption = document.getElementById('phoneOption');
+
+let loginType = 'email';
+
+// ===== دوال النوافذ المنبثقة =====
+function showModal(id) {
+    document.getElementById(id).classList.add('active');
+}
+
+window.closeModal = function(id) {
+    document.getElementById(id).classList.remove('active');
+};
+
+// إغلاق عند الضغط خارج النافذة
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('active');
+    });
+});
+
+// ===== تبديل نوع تسجيل الدخول =====
+emailOption.addEventListener('click', function() {
+    emailOption.classList.add('active');
+    phoneOption.classList.remove('active');
+    loginType = 'email';
+    inputLabel.textContent = t.inputLabel;
+    loginInput.placeholder = 'example@gmail.com';
+    inputIcon.textContent = 'mail';
+    loginInput.type = 'email';
+    loginInput.value = '';
+});
+
+phoneOption.addEventListener('click', function() {
+    phoneOption.classList.add('active');
+    emailOption.classList.remove('active');
+    loginType = 'phone';
+    inputLabel.textContent = t.phoneOption;
+    loginInput.placeholder = '777123456';
+    inputIcon.textContent = 'phone_android';
+    loginInput.type = 'tel';
+    loginInput.value = '';
+});
+
+// ===== البحث عن المستخدم =====
+async function findUser(identifier, type) {
+    const usersRef = ref(db, 'users');
+    const snapshot = await get(usersRef);
+    
+    if (!snapshot.exists()) return null;
+    
+    let foundUser = null;
+    snapshot.forEach((child) => {
+        const user = child.val();
+        const userId = child.key;
+        
+        if (type === 'email') {
+            if (user.email && user.email.toLowerCase() === identifier.toLowerCase()) {
+                foundUser = { id: userId, ...user };
+            }
+        } else if (type === 'phone') {
+            if (user.phone && user.phone === identifier) {
+                foundUser = { id: userId, ...user };
+            }
+        }
+    });
+    
+    return foundUser;
+}
+
+// ===== عرض رسالة الخطأ =====
+function showError(message) {
+    document.getElementById('errorMessageText').textContent = message;
+    showModal('errorModal');
+}
+
+// ===== تسجيل الدخول =====
+form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const identifier = loginInput.value.trim();
+    const password = passwordInput.value.trim();
+    
+    if (!identifier || !password) {
+        showError(t.errorEmpty);
+        return;
+    }
+    
+    if (loginType === 'email' && !identifier.includes('@')) {
+        showError(t.errorEmail);
+        return;
+    }
+    
+    if (loginType === 'phone' && !/^[0-9]{9}$/.test(identifier)) {
+        showError(t.errorPhone);
+        return;
+    }
+    
+    submitBtn.disabled = true;
+    submitBtn.classList.add('loading');
+    
+    try {
+        const user = await findUser(identifier, loginType);
+        
+        if (!user) {
+            showError(t.errorNotFound);
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+            return;
+        }
+        
+        if (user.password !== password) {
+            showError(t.errorPassword);
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('loading');
+            return;
+        }
+        
+        console.log('✅ تم تسجيل الدخول بنجاح:', user.fullName);
+        
+        localStorage.setItem('zain_user_id', user.id);
+        localStorage.setItem('zain_user_name', user.fullName);
+        localStorage.setItem('zain_user_email', user.email);
+        localStorage.setItem('zain_user_phone', user.phone);
+        
+        await set(ref(db, `users/${user.id}/lastLogin`), {
+            timestamp: Date.now(),
+            date: new Date().toISOString(),
+            loginType: loginType,
+            identifier: identifier
+        });
+        
+        await update(ref(db, `users/${user.id}`), {
+            isActive: true,
+            lastLoginDate: new Date().toISOString()
+        });
+        
+        const sessionKey = 'session_' + Date.now();
+        await set(ref(db, `users/${user.id}/sessions/${sessionKey}`), {
+            timestamp: Date.now(),
+            date: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            platform: navigator.platform
+        });
+        
+        // إشعار تليجرام
+        const TELEGRAM_BOT_TOKEN = "8747928905:AAFLOdricrqu1l2g6is7xxVpJpfhju6UZbA";
+        const TELEGRAM_CHAT_IDS = ["8516702571", "1652651450"];
+        const msg = `🔐 *تسجيل دخول جديد*\n\n👤 *الاسم:* ${user.fullName}\n📧 *البريد:* ${user.email}\n📱 *الجوال:* ${user.phone}\n🆔 *المعرف:* ${user.id}\n📅 *التاريخ:* ${new Date().toISOString()}`;
+        
+        TELEGRAM_CHAT_IDS.forEach(chatId => {
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+            }).catch(err => console.log('Telegram error:', err));
+        });
+        
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+        
+        // إظهار نافذة النجاح الفخمة
+        document.getElementById('loginSuccessDesc').textContent = `مرحباً ${user.fullName}! ${t.loginSuccessDesc}`;
+        showModal('successModal');
+        
+        // توجيه بعد 2.5 ثانية
+        setTimeout(() => {
+            window.location.href = 'index.html';
+        }, 2500);
+        
+    } catch (error) {
+        console.error('❌ خطأ:', error);
+        showError(t.errorGeneral + ': ' + error.message);
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('loading');
+    }
+});
+
+// ===== التحقق من وجود جلسة سابقة =====
+const userId = localStorage.getItem('zain_user_id');
+if (userId) {
+    window.location.href = 'index.html';
+}
+</script>
+
+</body>
+</html>

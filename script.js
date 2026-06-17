@@ -437,7 +437,20 @@ function fetchGatewaysData() {
             const btn = document.createElement("button");
             btn.className = "gateway-btn";
             btn.style.cssText = "display:block; width:100%; padding:10px; margin-bottom:5px; background:#fff; border:1px solid #ddd; border-radius:6px; cursor:pointer; font-family:'Cairo'; font-size:13px; text-align:right;";
-            btn.innerText = `${gateway.name} - (${translations[currentLang].gateway_owner_admin}: ${gateway.owner || translations[currentLang].gateway_owner_admin})`;
+            // عرض صورة طريقة الدفع + الاسم + الرقم
+const logoUrl = gateway.logo || "https://placehold.co/50x50?text=💰";
+btn.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 12px; direction: rtl;">
+        <img src="${logoUrl}" alt="${gateway.name}" 
+             style="width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #f5f5f5; border: 1px solid #eee;"
+             onerror="this.src='https://placehold.co/40x40?text=🔄'">
+        <div style="display: flex; flex-direction: column; align-items: flex-start; flex: 1;">
+            <strong style="font-size: 14px;">${gateway.name}</strong>
+            <span style="font-size: 12px; color: #666;">${translations[currentLang].gateway_owner_admin}: ${gateway.owner || 'المتجر'}</span>
+            <span style="font-size: 11px; color: #999;">رقم: ${gateway.number}</span>
+        </div>
+    </div>
+`;
             
             btn.addEventListener("click", () => {
                 showPaymentActionArea(gateway);
@@ -687,5 +700,51 @@ document.addEventListener("DOMContentLoaded", () => {
                 btn.classList.add('active');
             }
         });
+    }
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// ===== إصلاح أسماء الأزرار بعد تحميل الصفحة =====
+document.addEventListener('DOMContentLoaded', function() {
+    // التأكد من أن زر "حساب جديد" ما يتأثر بالكود القديم
+    const specialBtn = document.querySelector('.nav-btn-special');
+    if (specialBtn) {
+        // منع أي تأثير من الكود القديم على هذا الزر
+        specialBtn.style.pointerEvents = 'auto';
+    }
+    
+    // إعادة ضبط النصوص في حال تغيرت
+    const navBtns = document.querySelectorAll('.nav-btn:not(.nav-btn-special)');
+    const navTexts = ['الرئيسية', 'الدردشة', 'العربة', 'الإعدادات'];
+    
+    navBtns.forEach((btn, index) => {
+        const spans = btn.querySelectorAll('span');
+        if (spans.length >= 2) {
+            // آخر span هو النص
+            const textSpan = spans[spans.length - 1];
+            if (textSpan && !textSpan.classList.contains('material-symbols-rounded')) {
+                if (navTexts[index]) {
+                    textSpan.textContent = navTexts[index];
+                }
+            }
+        }
+    });
+    
+    // التأكد من نص زر "حساب جديد"
+    const specialLabel = document.querySelector('.special-label');
+    if (specialLabel) {
+        specialLabel.textContent = 'حساب جديد';
     }
 });

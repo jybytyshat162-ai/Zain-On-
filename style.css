@@ -432,55 +432,8 @@ body {
     text-align: left;
 }
 
-/* ===== شريط التنقل السفلي الاحترافي ===== */
-.bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    display: flex;
-    height: 78px;
-    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.05);
-    border-top: 1px solid #f0f0f0;
-    z-index: 1000;
-    padding: 0 8px;
-}
 
-.nav-btn {
-    flex: 1;
-    background: none;
-    border: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
-    color: #7f8c8d;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    gap: 4px;
-    cursor: pointer;
-}
 
-.nav-btn span.material-symbols-rounded {
-    font-size: 24px;
-    padding: 4px 14px;
-    border-radius: 16px;
-    transition: all 0.25s ease;
-}
-
-.nav-btn.active {
-    color: #FF6600;
-    font-weight: 700;
-}
-
-.nav-btn.active span.material-symbols-rounded {
-    background: rgba(255, 102, 0, 0.1);
-    color: #FF6600;
-}
 
 /* تخصيصات بوابات الدفع */
 .gateways-box {
@@ -1326,4 +1279,239 @@ body {
 @keyframes pulseText {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* ===== الشريط السفلي ===== */
+.bottom-nav {
+    display: flex !important;
+    justify-content: space-around;
+    align-items: center;
+    background: #ffffff;
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 6px 0 10px 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    height: 70px;
+    box-shadow: 0 -2px 15px rgba(0, 0, 0, 0.04);
+}
+
+/* ===== الأزرار الجانبية العادية ===== */
+.nav-btn {
+    background: none;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: #7f8c8d;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 2px;
+    cursor: pointer;
+    padding: 4px 0;
+    text-decoration: none;
+    flex: 1;
+    max-width: 65px;
+}
+
+.nav-btn span.material-symbols-rounded {
+    font-size: 22px;
+    transition: all 0.3s ease;
+}
+
+.nav-btn.active {
+    color: #FF6600;
+    font-weight: 700;
+}
+
+.nav-btn.active span.material-symbols-rounded {
+    color: #FF6600;
+}
+
+/* ===== زر إنشاء حساب (المنتصف - الفخم) ===== */
+.nav-btn-special {
+    flex: 0 0 65px;
+    max-width: 65px;
+    position: relative;
+    top: -8px;
+}
+
+.special-icon-wrapper {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #ffffff, #f0f0f0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        inset -3px -3px 6px rgba(0, 0, 0, 0.06),
+        inset 3px 3px 6px rgba(255, 255, 255, 0.8),
+        0 4px 12px rgba(255, 102, 0, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+/* الحلقة الداخلية البرتقالية */
+.special-icon-wrapper::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border-radius: 50%;
+    background: linear-gradient(145deg, #FF6600, #e65c00);
+    box-shadow: 
+        inset -2px -2px 4px rgba(0, 0, 0, 0.15),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+/* الأيقونة */
+.special-icon-wrapper span {
+    position: relative;
+    z-index: 2;
+    color: #ffffff;
+    font-size: 24px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* النص تحت الزر */
+.special-label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #FF6600;
+    margin-top: 2px;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+}
+
+/* ===== تأثيرات التفاعل ===== */
+.nav-btn-special:active .special-icon-wrapper {
+    transform: scale(0.92);
+}
+
+.nav-btn-special:active .special-icon-wrapper::before {
+    background: linear-gradient(145deg, #e65c00, #cc5200);
+}
+
+/* ===== حالة النشاط ===== */
+.nav-btn-special.active .special-icon-wrapper {
+    box-shadow: 
+        inset -3px -3px 6px rgba(0, 0, 0, 0.08),
+        inset 3px 3px 6px rgba(255, 255, 255, 0.9),
+        0 4px 20px rgba(255, 102, 0, 0.35);
+}
+
+.nav-btn-special.active .special-icon-wrapper::before {
+    background: linear-gradient(145deg, #ff5500, #cc4400);
+}
+
+.nav-btn-special.active .special-label {
+    color: #cc4400;
+}
+
+/* ===== تأثير وميض خفيف ===== */
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow: 
+            inset -3px -3px 6px rgba(0, 0, 0, 0.06),
+            inset 3px 3px 6px rgba(255, 255, 255, 0.8),
+            0 4px 12px rgba(255, 102, 0, 0.2);
+    }
+    50% {
+        box-shadow: 
+            inset -3px -3px 6px rgba(0, 0, 0, 0.06),
+            inset 3px 3px 6px rgba(255, 255, 255, 0.8),
+            0 4px 20px rgba(255, 102, 0, 0.35);
+    }
+}
+
+.special-icon-wrapper {
+    animation: glowPulse 3s ease-in-out infinite;
+}
+
+
+
+
+
+
+
+/* تأثير وميض خفيف للزر */
+@keyframes glowPulse {
+    0%, 100% {
+        box-shadow: 
+            inset -4px -4px 8px rgba(0, 0, 0, 0.06),
+            inset 4px 4px 8px rgba(255, 255, 255, 0.8),
+            0 4px 12px rgba(255, 102, 0, 0.15);
+    }
+    50% {
+        box-shadow: 
+            inset -4px -4px 8px rgba(0, 0, 0, 0.06),
+            inset 4px 4px 8px rgba(255, 255, 255, 0.8),
+            0 4px 25px rgba(255, 102, 0, 0.3);
+    }
+}
+
+.special-icon-wrapper {
+    animation: glowPulse 3s ease-in-out infinite;
+}
+
+
+
+
+
+
+
+
+
+حالة/* ===== حالة "حساب جديد" (برتقالي) ===== */
+.nav-btn-special.signup-mode .special-icon-wrapper {
+    background: linear-gradient(145deg, #FF6600, #ff822e) !important;
+    box-shadow: 0 6px 20px rgba(255, 102, 0, 0.35) !important;
+}
+.nav-btn-special.signup-mode .special-icon-wrapper::before {
+    background: linear-gradient(145deg, #FF6600, #ff822e) !important;
+}
+.nav-btn-special.signup-mode .special-label {
+    color: #FF6600 !important;
+}
+
+/* ===== حالة "حسابي" (أخضر) ===== */
+.nav-btn-special.logged-in .special-icon-wrapper {
+    background: linear-gradient(145deg, #10b981, #059669) !important;
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+}
+.nav-btn-special.logged-in .special-icon-wrapper::before {
+    background: linear-gradient(145deg, #10b981, #059669) !important;
+}
+.nav-btn-special.logged-in .special-label {
+    color: #10b981 !important;
+}
+
+/* ===== حالة "تسجيل دخول" (أزرق) ===== */
+.nav-btn-special.logged-out .special-icon-wrapper {
+    background: linear-gradient(145deg, #3b82f6, #2563eb) !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.35) !important;
+}
+.nav-btn-special.logged-out .special-icon-wrapper::before {
+    background: linear-gradient(145deg, #3b82f6, #2563eb) !important;
+}
+.nav-btn-special.logged-out .special-label {
+    color: #3b82f6 !important;
 }
