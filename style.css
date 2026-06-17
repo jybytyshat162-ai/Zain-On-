@@ -1515,3 +1515,217 @@ body {
 .nav-btn-special.logged-out .special-label {
     color: #3b82f6 !important;
 }
+
+
+
+
+
+/* ===== قائمة الضغط المطول للمنتج ===== */
+.product-context-menu {
+    position: fixed;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px;
+    min-width: 200px;
+    max-width: 280px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    z-index: 99999;
+    opacity: 0;
+    transform: scale(0.9) translateY(10px);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    pointer-events: none;
+    direction: rtl;
+    font-family: 'Cairo', sans-serif;
+    border: 1px solid rgba(255, 102, 0, 0.08);
+}
+
+.product-context-menu.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    pointer-events: auto;
+}
+
+.product-context-menu .menu-header {
+    font-size: 14px;
+    color: #1a1a2e;
+    padding-bottom: 8px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.product-context-menu .menu-divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 8px 0;
+}
+
+.product-context-menu .menu-rating-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.product-context-menu .rating-label {
+    font-size: 12px;
+    color: #888;
+    font-weight: 600;
+}
+
+.product-context-menu .stars-container {
+    display: flex;
+    gap: 4px;
+    direction: ltr;
+}
+
+.product-context-menu .star {
+    font-size: 22px;
+    cursor: pointer;
+    opacity: 0.3;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.product-context-menu .star.active {
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.product-context-menu .star:hover {
+    transform: scale(1.2);
+}
+
+.product-context-menu .menu-fav-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background: #fafafa;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    transition: all 0.2s ease;
+}
+
+.product-context-menu .menu-fav-btn:active {
+    transform: scale(0.97);
+}
+
+.product-context-menu .menu-fav-btn.active {
+    background: #fff0f0;
+    border-color: #ff6b6b;
+    color: #ff3b30;
+}
+
+.product-context-menu .menu-fav-btn .material-symbols-rounded {
+    font-size: 20px;
+}
+
+.product-context-menu .menu-close-btn {
+    width: 100%;
+    padding: 8px;
+    margin-top: 8px;
+    border: none;
+    background: #f5f6f9;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #888;
+    transition: all 0.2s ease;
+}
+
+.product-context-menu .menu-close-btn:active {
+    transform: scale(0.97);
+    background: #eee;
+}
+
+
+
+
+/* ===== قسم المقيمين في نافذة المنتج ===== */
+.menu-reviewers-section {
+    margin: 8px 0;
+    background: #f8f9fa;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.reviewers-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: #444;
+    transition: background 0.2s;
+    user-select: none;
+}
+
+.reviewers-header:hover {
+    background: #f0f1f4;
+}
+
+.reviewers-arrow {
+    font-size: 12px;
+    color: #999;
+    transition: transform 0.3s;
+}
+
+.reviewers-list {
+    padding: 4px 12px 10px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.reviewer-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+    font-size: 13px;
+    border-bottom: 1px dashed #f0f0f0;
+}
+
+.reviewer-item:last-child {
+    border-bottom: none;
+}
+
+.reviewer-icon {
+    font-size: 16px;
+}
+
+.reviewer-name {
+    flex: 1;
+    color: #333;
+    font-weight: 500;
+}
+
+.reviewer-stars {
+    color: #f59f00;
+    font-size: 13px;
+    letter-spacing: 1px;
+}
+
+.reviewers-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.reviewers-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.reviewers-list::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 4px;
+}

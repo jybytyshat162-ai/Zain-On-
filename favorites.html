@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⭐ المفضلة - زين أون لاين</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #f5f6fa;
+            min-height: 100vh;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+
+        /* ===== الهيدر ===== */
+        .favorites-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 2px solid rgba(255, 102, 0, 0.1);
+            margin-bottom: 24px;
+        }
+        .favorites-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 22px;
+            color: #1a1a2e;
+        }
+        .favorites-header h2 span {
+            color: #FF6600;
+        }
+        .back-btn {
+            text-decoration: none;
+            color: #666;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: 'Cairo', sans-serif;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background: #f0f1f4;
+            transition: 0.2s;
+        }
+        .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== شبكة المنتجات ===== */
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .fav-product-card {
+            background: #ffffff;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            position: relative;
+            border: 1px solid #f0f0f0;
+        }
+        .fav-product-card:active {
+            transform: scale(0.97);
+        }
+
+        .fav-product-img {
+            width: 100%;
+            height: 140px;
+            background-size: cover;
+            background-position: center;
+            background-color: #f8f9fa;
+            position: relative;
+        }
+
+        .fav-remove-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 59, 48, 0.9);
+            border: none;
+            color: white;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
+        }
+        .fav-remove-btn:active {
+            transform: scale(0.85);
+        }
+        .fav-remove-btn span {
+            font-size: 18px;
+        }
+
+        .fav-product-info {
+            padding: 12px 14px 14px;
+        }
+        .fav-product-info h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .fav-product-price {
+            font-size: 15px;
+            font-weight: 700;
+            color: #FF6600;
+            margin-bottom: 10px;
+        }
+        .fav-product-price small {
+            font-size: 12px;
+            font-weight: 400;
+            color: #999;
+        }
+
+        .fav-actions {
+            display: flex;
+            gap: 8px;
+        }
+        .fav-actions button {
+            flex: 1;
+            padding: 8px 0;
+            border: none;
+            border-radius: 10px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .fav-actions button:active {
+            transform: scale(0.95);
+        }
+        .btn-add-cart {
+            background: linear-gradient(135deg, #FF6600, #ff822e);
+            color: white;
+        }
+        .btn-add-cart.added {
+            background: #28a745;
+        }
+        .btn-view-details {
+            background: #f0f1f4;
+            color: #555;
+        }
+
+        /* ===== الحالة الفارغة ===== */
+        .empty-favorites {
+            text-align: center;
+            padding: 80px 20px;
+        }
+        .empty-favorites .big-icon {
+            font-size: 80px;
+            color: #ddd;
+            display: block;
+        }
+        .empty-favorites h3 {
+            color: #444;
+            margin-top: 16px;
+            font-size: 20px;
+        }
+        .empty-favorites p {
+            color: #999;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        .empty-favorites .browse-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 12px 32px;
+            background: linear-gradient(135deg, #FF6600, #ff822e);
+            color: white;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 700;
+            font-family: 'Cairo', sans-serif;
+            transition: 0.2s;
+        }
+        .empty-favorites .browse-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* ===== إشعار منبثق صغير ===== */
+        .toast-notification {
+            position: fixed;
+            bottom: 90px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a2e;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 14px;
+            font-family: 'Cairo', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            z-index: 99999;
+            opacity: 0;
+            transition: all 0.4s ease;
+            pointer-events: none;
+            direction: rtl;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast-notification.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-10px);
+        }
+        .toast-notification.success {
+            background: #28a745;
+        }
+        .toast-notification.error {
+            background: #dc3545;
+        }
+        .toast-notification.warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        /* ===== عدد المنتجات في الهيدر ===== */
+        .fav-count {
+            font-size: 13px;
+            color: #888;
+            font-weight: 400;
+        }
+
+        /* ===== التجاوب ===== */
+        @media (max-width: 480px) {
+            .favorites-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .fav-product-img {
+                height: 110px;
+            }
+            .fav-product-info h4 {
+                font-size: 13px;
+            }
+            .fav-product-price {
+                font-size: 13px;
+            }
+            .fav-actions button {
+                font-size: 11px;
+                padding: 6px 0;
+            }
+            .fav-actions button span {
+                font-size: 16px;
+            }
+        }
+
+        @media (min-width: 600px) {
+            .favorites-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        @media (min-width: 900px) {
+            .favorites-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== الهيدر ===== -->
+    <div class="favorites-header">
+        <h2>
+            <span class="material-symbols-rounded" style="color:#FF6600;">favorite</span>
+            المفضلة
+            <span class="fav-count" id="favCount">(0)</span>
+        </h2>
+        <a href="index.html" class="back-btn">
+            <span class="material-symbols-rounded">arrow_forward</span>
+            العودة
+        </a>
+    </div>
+
+    <!-- ===== شبكة المنتجات ===== -->
+    <div class="favorites-grid" id="favoritesGrid">
+        <!-- سيتم عرض المنتجات هنا عبر JavaScript -->
+    </div>
+
+    <!-- ===== حالة فارغة ===== -->
+    <div class="empty-favorites" id="emptyFavorites" style="display: none;">
+        <span class="material-symbols-rounded big-icon">favorite_border</span>
+        <h3>لا توجد منتجات مفضلة</h3>
+        <p>تصفح المنتجات وأضف ما يعجبك إلى قائمة المفضلة ❤️</p>
+        <a href="index.html" class="browse-btn">🛍️ تصفح المنتجات</a>
+    </div>
+
+    <!-- ===== إشعار منبثق ===== -->
+    <div class="toast-notification" id="toastNotification">
+        <span class="material-symbols-rounded" id="toastIcon">check_circle</span>
+        <span id="toastMessage">تمت العملية بنجاح</span>
+    </div>
+
+    <!-- ===== ربط Firebase ===== -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAUmiSv1NdOWCZhJCGab6in028MPhNjFgE",
+            databaseURL: "https://zain-online-938c5-default-rtdb.firebaseio.com",
+            projectId: "zain-online-938c5"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let allProducts = [];
+
+        // ===== جلب المنتجات من Firebase =====
+        async function loadProducts() {
+            const snapshot = await get(ref(db, 'products'));
+            if (snapshot.exists()) {
+                const products = [];
+                snapshot.forEach((child) => {
+                    const item = child.val();
+                    item.id = child.key;
+                    products.push(item);
+                });
+                allProducts = products;
+                renderFavorites();
+            }
+        }
+
+        // ===== دوال المفضلة =====
+        function getFavorites() {
+            return JSON.parse(localStorage.getItem('favorites') || '[]');
+        }
+
+        function isProductFavorite(productId) {
+            return getFavorites().includes(productId);
+        }
+
+        function removeFavorite(productId) {
+            let favorites = getFavorites();
+            favorites = favorites.filter(id => id !== productId);
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+        }
+
+        // ===== عرض المفضلة =====
+        function renderFavorites() {
+            const grid = document.getElementById('favoritesGrid');
+            const empty = document.getElementById('emptyFavorites');
+            const countEl = document.getElementById('favCount');
+            
+            const favorites = getFavorites();
+            
+            // تحديث العدد
+            countEl.textContent = `(${favorites.length})`;
+
+            if (favorites.length === 0) {
+                grid.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+            empty.style.display = 'none';
+
+            // تصفية المنتجات المفضلة
+            const favProducts = allProducts.filter(p => favorites.includes(p.id));
+
+            if (favProducts.length === 0) {
+                grid.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+            favProducts.forEach(product => {
+                const imgUrl = product.image1 || 'https://placehold.co/300x200?text=Zain+Online';
+                html += `
+                    <div class="fav-product-card" data-id="${product.id}">
+                        <div class="fav-product-img" style="background-image: url('${imgUrl}');">
+                            <button class="fav-remove-btn" onclick="window.removeFromFavorites('${product.id}')" title="إزالة من المفضلة">
+                                <span class="material-symbols-rounded">close</span>
+                            </button>
+                        </div>
+                        <div class="fav-product-info">
+                            <h4>${product.name}</h4>
+                            <div class="fav-product-price">${product.price} <small>ريال يمني</small></div>
+                            <div class="fav-actions">
+                                <button class="btn-add-cart" onclick="window.addToCartFromFav('${product.id}')">
+                                    <span class="material-symbols-rounded">shopping_cart</span>
+                                    أضف للسلة
+                                </button>
+                                <button class="btn-view-details" onclick="window.viewProduct('${product.id}')">
+                                    <span class="material-symbols-rounded">visibility</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
+        // ===== إضافة إلى السلة من المفضلة =====
+        window.addToCartFromFav = function(productId) {
+            const product = allProducts.find(p => p.id === productId);
+            if (!product) {
+                showToast('المنتج غير موجود', 'error');
+                return;
+            }
+
+            // جلب السلة الحالية
+            let cart = JSON.parse(localStorage.getItem('zain_cart') || '[]');
+            
+            // التحقق إذا المنتج موجود مسبقاً
+            const existingIndex = cart.findIndex(item => item.id === productId);
+            if (existingIndex !== -1) {
+                cart[existingIndex].qty += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    name: product.name,
+                    price: Number(product.price),
+                    qty: 1,
+                    addedAt: Date.now()
+                });
+            }
+            
+            localStorage.setItem('zain_cart', JSON.stringify(cart));
+            showToast(`✅ تم إضافة "${product.name}" إلى السلة`, 'success');
+            
+            // تحديث زر الإضافة
+            const cards = document.querySelectorAll('.fav-product-card');
+            cards.forEach(card => {
+                if (card.dataset.id === productId) {
+                    const btn = card.querySelector('.btn-add-cart');
+                    if (btn) {
+                        btn.innerHTML = `<span class="material-symbols-rounded">check</span> تمت الإضافة`;
+                        btn.classList.add('added');
+                        setTimeout(() => {
+                            btn.innerHTML = `<span class="material-symbols-rounded">shopping_cart</span> أضف للسلة`;
+                            btn.classList.remove('added');
+                        }, 2000);
+                    }
+                }
+            });
+        };
+
+        // ===== إزالة من المفضلة =====
+        window.removeFromFavorites = function(productId) {
+            const product = allProducts.find(p => p.id === productId);
+            removeFavorite(productId);
+            renderFavorites();
+            showToast(`🗑️ تم إزالة "${product?.name || 'المنتج'}" من المفضلة`, 'warning');
+        };
+
+        // ===== عرض تفاصيل المنتج =====
+        window.viewProduct = function(productId) {
+            // حفظ معرف المنتج في localStorage للرجوع إليه
+            localStorage.setItem('view_product_id', productId);
+            window.location.href = 'index.html?view=details';
+        };
+
+        // ===== نظام الإشعارات =====
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toastNotification');
+            const toastMessage = document.getElementById('toastMessage');
+            const toastIcon = document.getElementById('toastIcon');
+            
+            toast.className = 'toast-notification';
+            toastMessage.textContent = message;
+            
+            if (type === 'success') {
+                toast.classList.add('success');
+                toastIcon.textContent = 'check_circle';
+            } else if (type === 'error') {
+                toast.classList.add('error');
+                toastIcon.textContent = 'error';
+            } else if (type === 'warning') {
+                toast.classList.add('warning');
+                toastIcon.textContent = 'warning';
+            }
+            
+            setTimeout(() => toast.classList.add('show'), 10);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // ===== تحميل الصفحة =====
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadProducts();
+        });
+
+        // ===== جعل الدوال متاحة عالمياً =====
+        window.renderFavorites = renderFavorites;
+        window.getFavorites = getFavorites;
+        window.removeFavorite = removeFavorite;
+        window.isProductFavorite = isProductFavorite;
+    </script>
+
+</body>
+</html>
