@@ -753,9 +753,10 @@ form.addEventListener('submit', async function(e) {
         console.log('✅ تم تسجيل الدخول بنجاح:', user.fullName);
         
         localStorage.setItem('zain_user_id', user.id);
-        localStorage.setItem('zain_user_name', user.fullName);
-        localStorage.setItem('zain_user_email', user.email);
-        localStorage.setItem('zain_user_phone', user.phone);
+localStorage.setItem('zain_user_name', user.fullName);
+localStorage.setItem('zain_user_email', user.email);
+localStorage.setItem('zain_user_phone', user.phone);
+localStorage.setItem('has_visited', 'true'); // ← أضف هذا السطر
         
         await set(ref(db, `users/${user.id}/lastLogin`), {
             timestamp: Date.now(),

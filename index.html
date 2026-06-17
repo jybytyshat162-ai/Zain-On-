@@ -1166,6 +1166,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // ===== تحديث زر الحساب (3 حالات) =====
 // ===== تحديث زر الحساب =====
 // ===== تحديث زر الحساب (3 حالات) =====
+// ===== تحديث زر الحساب (3 حالات) =====
 function updateAccountButton() {
     const userId = localStorage.getItem('zain_user_id');
     const btn = document.getElementById('signupNavBtn');
@@ -1178,6 +1179,7 @@ function updateAccountButton() {
     }
     
     console.log('🔍 تحديث الزر - userId:', userId);
+    console.log('🔍 has_visited:', localStorage.getItem('has_visited'));
     
     // الحالة 1: مستخدم مسجل دخول
     if (userId) {
@@ -1189,17 +1191,26 @@ function updateAccountButton() {
         return;
     }
     
-    // الحالة 2: أول مرة يفتح الموقع (ما في حساب ولا زيارة)
+    // ✅ الحالة 2: أول مرة يفتح الموقع (ما في حساب ولا زيارة)
+    // نتحقق من وجود has_visited في localStorage
     const hasVisited = localStorage.getItem('has_visited');
     if (!hasVisited) {
         icon.textContent = 'person_add';
         label.textContent = 'حساب جديد';
         btn.href = 'signup.html';
         btn.className = 'nav-btn nav-btn-special signup-mode';
-        localStorage.setItem('has_visited', 'true');
+        // ❌ لا نضع has_visited هنا! نضعه فقط بعد إنشاء حساب
         console.log('✅ زر "حساب جديد" (أول مرة)');
         return;
     }
+    
+    // الحالة 3: زار الموقع قبل كده وسجل خروج
+    icon.textContent = 'login';
+    label.textContent = 'تسجيل دخول';
+    btn.href = 'login.html';
+    btn.className = 'nav-btn nav-btn-special logged-out';
+    console.log('✅ زر "تسجيل دخول" (سجل خروج)');
+}
     
     // الحالة 3: زار الموقع قبل كده وسجل خروج
     icon.textContent = 'login';

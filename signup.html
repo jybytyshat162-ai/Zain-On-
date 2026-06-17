@@ -677,9 +677,11 @@ form.addEventListener('submit', async function(e) {
         });
 
         localStorage.setItem('zain_user_id', userId);
-        localStorage.setItem('zain_user_name', fullName.value.trim());
-        localStorage.setItem('zain_user_email', email.value.trim());
+localStorage.setItem('zain_user_name', fullName.value.trim());
+localStorage.setItem('zain_user_email', email.value.trim());
+localStorage.setItem('has_visited', 'true'); 
 
+// ← أضف هذا السطر
         // إظهار نافذة النجاح
         showSuccessModal(`مرحباً ${fullName.value.trim()}! ${t.successMessage}`);
 
