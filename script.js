@@ -1,7 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, get, set, push, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-
+import { getDatabase, ref, onValue, get, set, push, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 // إعدادات ومفاتيح الربط الخاصة بقاعدتك المفتوحة لـ "زين أون لاين"
 const firebaseConfig = {
@@ -59,9 +57,149 @@ function cleanExpiredCartItems() {
     }
 }
 
-// ===== حفظ السلة في localStorage =====
+// ===== حفظ السلة في localStorage و Firebase =====
 function saveCartToStorage() {
     localStorage.setItem('zain_cart', JSON.stringify(currentCart));
+    // ✅ حفظ في Firebase أيضاً
+    saveCartToFirebase();
+}
+
+// ===== حفظ السلة في Firebase =====
+async function saveCartToFirebase() {
+    const userId = localStorage.getItem('zain_user_id');
+    if (!userId) return;
+    
+    const cartRef = ref(db, `carts/${userId}`);
+    try {
+        await set(cartRef, {
+            items: currentCart,
+            updatedAt: Date.now()
+        });
+    } catch (error) {
+        console.error('خطأ في حفظ السلة في Firebase:', error);
+    }
+}
+
+// ===== تحميل السلة من Firebase =====
+async function loadCartFromFirebase() {
+    const userId = localStorage.getItem('zain_user_id');
+    if (!userId) return;
+    
+    const cartRef = ref(db, `carts/${userId}`);
+    try {
+        const snapshot = await get(cartRef);
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            currentCart = data.items || [];
+            localStorage.setItem('zain_cart', JSON.stringify(currentCart));
+            updateCartUI();
+        }
+    } catch (error) {
+        console.error('خطأ في جلب السلة من Firebase:', error);
+    }
+}
+
+// ===== دوال Firebase للتقييمات =====
+async function saveRatingToFirebase(productId, rating) {
+    const userId = localStorage.getItem('zain_user_id');
+    if (!userId) return false;
+    
+    const ratingRef = ref(db, `ratings/${productId}/${userId}`);
+    try {
+        await set(ratingRef, {
+            rating: rating,
+            userName: localStorage.getItem('zain_user_name') || 'مستخدم',
+            timestamp: Date.now()
+        });
+        return true;
+    } catch (error) {
+        console.error('خطأ في حفظ التقييم:', error);
+        return false;
+    }
+}
+
+async function getProductRatingsFromFirebase(productId) {
+    const ratingRef = ref(db, `ratings/${productId}`);
+    try {
+        const snapshot = await get(ratingRef);
+        if (!snapshot.exists()) {
+            return { average: 0, count: 0, reviewers: [] };
+        }
+        
+        const ratings = snapshot.val();
+        let total = 0;
+        const reviewers = [];
+        
+        for (const [userId, data] of Object.entries(ratings)) {
+            total += data.rating;
+            reviewers.push({
+                userId: userId,
+                name: data.userName || 'مستخدم',
+                rating: data.rating
+            });
+        }
+        
+        return {
+            average: Math.round(total / reviewers.length),
+            count: reviewers.length,
+            reviewers: reviewers
+        };
+    } catch (error) {
+        console.error('خطأ في جلب التقييمات:', error);
+        return { average: 0, count: 0, reviewers: [] };
+    }
+}
+
+// ===== دوال Firebase للمفضلة =====
+async function saveFavoriteToFirebase(productId) {
+    const userId = localStorage.getItem('zain_user_id');
+    if (!userId) return false;
+    
+    const favRef = ref(db, `favorites/${userId}/${productId}`);
+    try {
+        await set(favRef, {
+            productId: productId,
+            addedAt: Date.now()
+        });
+        return true;
+    } catch (error) {
+        console.error('خطأ في حفظ المفضلة:', error);
+        return false;
+    }
+}
+
+async function removeFavoriteFromFirebase(productId) {
+    const userId = localStorage.getItem('zain_user_id');
+    if (!userId) return false;
+    
+    const favRef = ref(db, `favorites/${userId}/${productId}`);
+    try {
+        await remove(favRef);
+        return true;
+    } catch (error) {
+        console.error('خطأ في حذف المفضلة:', error);
+        return false;
+    }
+}
+
+async function getFavoritesFromFirebase() {
+    const userId = localStorage.getItem('zain_user_id');
+    if (!userId) return [];
+    
+    const favRef = ref(db, `favorites/${userId}`);
+    try {
+        const snapshot = await get(favRef);
+        if (!snapshot.exists()) return [];
+        
+        const favorites = [];
+        snapshot.forEach((child) => {
+            favorites.push(child.key);
+        });
+        return favorites;
+    } catch (error) {
+        console.error('خطأ في جلب المفضلة:', error);
+        return [];
+    }
 }
 
 // ===== قاموس اللغة =====
@@ -195,8 +333,6 @@ const translations = {
         alert_cart_expired_desc: 'Removed '
     }
 };
-
-
 
 // دالة مساعدة سريعة لجلب اللغة الحالية في المتصفح فورا لربط النصوص ديناميكياً
 function getCurrentLanguage() {
@@ -393,8 +529,8 @@ window.toggleReviewers = function(header, e) {
     }
 };
 
-// ===== عرض قائمة المنتج المنبثقة =====
-function showProductMenu(event, product) {
+// ===== عرض قائمة المنتج المنبثقة (محدثة مع Firebase) =====
+async function showProductMenu(event, product) {
     const currentLang = getCurrentLanguage();
     
     // ✅ التحقق من وجود مستخدم مسجل
@@ -413,6 +549,12 @@ function showProductMenu(event, product) {
     const oldMenu = document.querySelector('.product-context-menu');
     if (oldMenu) oldMenu.remove();
     
+    // ✅ جلب التقييمات من Firebase
+    const ratingData = await getProductRatingsFromFirebase(product.id);
+    // ✅ جلب المفضلة من Firebase
+    const favorites = await getFavoritesFromFirebase();
+    const isFav = favorites.includes(product.id);
+    
     const menu = document.createElement('div');
     menu.className = 'product-context-menu';
     
@@ -424,26 +566,22 @@ function showProductMenu(event, product) {
         y = event.clientY;
     }
     
-    const rating = getProductRating(product.id);
-    const isFav = isProductFavorite(product.id);
-    
     let starsHTML = '';
     for (let i = 1; i <= 5; i++) {
-        starsHTML += `<span class="star ${i <= rating ? 'active' : ''}" data-rating="${i}">⭐</span>`;
+        starsHTML += `<span class="star ${i <= ratingData.average ? 'active' : ''}" data-rating="${i}">⭐</span>`;
     }
     
-    // جلب قائمة المقيمين من localStorage
-    const reviewers = getProductReviewers(product.id);
+    // ✅ جلب قائمة المقيمين من Firebase
     let reviewersHTML = '';
-    if (reviewers.length > 0) {
+    if (ratingData.reviewers.length > 0) {
         reviewersHTML = `
             <div class="menu-reviewers-section">
                 <div class="reviewers-header" onclick="window.toggleReviewers(this, event)">
-                    <span>👥 من قيموا المنتج (${reviewers.length})</span>
+                    <span>👥 من قيموا المنتج (${ratingData.reviewers.length})</span>
                     <span class="reviewers-arrow">▼</span>
                 </div>
                 <div class="reviewers-list" style="display: none;">
-                    ${reviewers.map(r => `
+                    ${ratingData.reviewers.map(r => `
                         <div class="reviewer-item">
                             <span class="reviewer-icon">👤</span>
                             <span class="reviewer-name">${r.name || 'مستخدم'}</span>
@@ -461,7 +599,7 @@ function showProductMenu(event, product) {
         </div>
         <div class="menu-divider"></div>
         <div class="menu-rating-section">
-            <span class="rating-label">⭐ تقييم المنتج:</span>
+            <span class="rating-label">⭐ تقييم المنتج (${ratingData.average})</span>
             <div class="stars-container">
                 ${starsHTML}
             </div>
@@ -483,9 +621,9 @@ function showProductMenu(event, product) {
     
     setTimeout(() => menu.classList.add('show'), 10);
     
-    // أحداث القائمة
+    // أحداث القائمة - التقييم
     menu.querySelectorAll('.star').forEach(star => {
-        star.addEventListener('click', function() {
+        star.addEventListener('click', async function() {
             // ✅ التحقق مرة أخرى قبل التقييم
             const userId = localStorage.getItem('zain_user_id');
             if (!userId) {
@@ -498,48 +636,54 @@ function showProductMenu(event, product) {
             }
             
             const ratingValue = parseInt(this.dataset.rating);
-            saveProductRating(product.id, ratingValue);
             
-            // حفظ اسم المستخدم مع التقييم
-            const userName = localStorage.getItem('zain_user_name') || 'مستخدم';
-            saveReviewer(product.id, userName, ratingValue);
+            // ✅ حفظ التقييم في Firebase
+            const saved = await saveRatingToFirebase(product.id, ratingValue);
             
-            menu.querySelectorAll('.star').forEach(s => {
-                s.classList.toggle('active', parseInt(s.dataset.rating) <= ratingValue);
-            });
-            
-            showCustomAlert('⭐ تم التقييم', `قيمت المنتج بـ ${ratingValue} نجوم`, 'success');
-            
-            // تحديث قائمة المقيمين
-            setTimeout(() => {
-                const newReviewers = getProductReviewers(product.id);
-                const reviewersSection = menu.querySelector('.menu-reviewers-section');
-                if (reviewersSection) {
-                    const header = reviewersSection.querySelector('.reviewers-header');
-                    const list = reviewersSection.querySelector('.reviewers-list');
-                    if (header) {
-                        header.innerHTML = `
-                            <span>👥 من قيموا المنتج (${newReviewers.length})</span>
-                            <span class="reviewers-arrow">▲</span>
-                        `;
-                        header.setAttribute('onclick', 'window.toggleReviewers(this, event)');
-                    }
-                    if (list) {
-                        list.innerHTML = newReviewers.map(r => `
-                            <div class="reviewer-item">
-                                <span class="reviewer-icon">👤</span>
-                                <span class="reviewer-name">${r.name || 'مستخدم'}</span>
-                                <span class="reviewer-stars">${'⭐'.repeat(r.rating)}</span>
-                            </div>
-                        `).join('');
-                        list.style.display = 'block';
+            if (saved) {
+                // تحديث الواجهة
+                menu.querySelectorAll('.star').forEach(s => {
+                    s.classList.toggle('active', parseInt(s.dataset.rating) <= ratingValue);
+                });
+                
+                // تحديث التقييمات
+                const newRating = await getProductRatingsFromFirebase(product.id);
+                const label = menu.querySelector('.rating-label');
+                if (label) label.textContent = `⭐ تقييم المنتج (${newRating.average})`;
+                
+                // تحديث قائمة المقيمين
+                if (newRating.reviewers.length > 0) {
+                    const section = menu.querySelector('.menu-reviewers-section');
+                    if (section) {
+                        const header = section.querySelector('.reviewers-header');
+                        const list = section.querySelector('.reviewers-list');
+                        if (header) {
+                            header.innerHTML = `
+                                <span>👥 من قيموا المنتج (${newRating.reviewers.length})</span>
+                                <span class="reviewers-arrow">▲</span>
+                            `;
+                            header.setAttribute('onclick', 'window.toggleReviewers(this, event)');
+                        }
+                        if (list) {
+                            list.innerHTML = newRating.reviewers.map(r => `
+                                <div class="reviewer-item">
+                                    <span class="reviewer-icon">👤</span>
+                                    <span class="reviewer-name">${r.name || 'مستخدم'}</span>
+                                    <span class="reviewer-stars">${'⭐'.repeat(r.rating)}</span>
+                                </div>
+                            `).join('');
+                            list.style.display = 'block';
+                        }
                     }
                 }
-            }, 500);
+                
+                showCustomAlert('⭐ تم التقييم', `قيمت المنتج بـ ${ratingValue} نجوم`, 'success');
+            }
         });
     });
     
-    menu.querySelector('.menu-fav-btn').addEventListener('click', function() {
+    // حدث زر المفضلة
+    menu.querySelector('.menu-fav-btn').addEventListener('click', async function() {
         // ✅ التحقق من وجود مستخدم مسجل
         const userId = localStorage.getItem('zain_user_id');
         if (!userId) {
@@ -552,10 +696,11 @@ function showProductMenu(event, product) {
         }
         
         const productId = this.dataset.productId;
-        const isFavorite = isProductFavorite(productId);
+        const isFavorite = this.classList.contains('active');
         
         if (isFavorite) {
-            removeFavorite(productId);
+            // ✅ حذف من Firebase
+            await removeFavoriteFromFirebase(productId);
             this.classList.remove('active');
             this.innerHTML = `
                 <span class="material-symbols-rounded">favorite_border</span>
@@ -563,7 +708,8 @@ function showProductMenu(event, product) {
             `;
             showCustomAlert('🗑️ تم الإزالة', 'تم إزالة المنتج من المفضلة', 'warning');
         } else {
-            addFavorite(productId);
+            // ✅ حفظ في Firebase
+            await saveFavoriteToFirebase(productId);
             this.classList.add('active');
             this.innerHTML = `
                 <span class="material-symbols-rounded">favorite</span>
@@ -589,7 +735,7 @@ function showProductMenu(event, product) {
     }, 100);
 }
 
-// ===== دوال إدارة التقييم =====
+// ===== دوال إدارة التقييم (محلياً - احتياطي) =====
 function getProductRating(productId) {
     const ratings = JSON.parse(localStorage.getItem('product_ratings') || '{}');
     return ratings[productId] || 0;
@@ -601,7 +747,7 @@ function saveProductRating(productId, rating) {
     localStorage.setItem('product_ratings', JSON.stringify(ratings));
 }
 
-// ===== دوال إدارة المقيمين =====
+// ===== دوال إدارة المقيمين (محلياً - احتياطي) =====
 function getProductReviewers(productId) {
     const reviewers = JSON.parse(localStorage.getItem('product_reviewers') || '{}');
     return reviewers[productId] || [];
@@ -612,7 +758,6 @@ function saveReviewer(productId, name, rating) {
     if (!reviewers[productId]) {
         reviewers[productId] = [];
     }
-    // التحقق إذا المستخدم قيم من قبل
     const existingIndex = reviewers[productId].findIndex(r => r.name === name);
     if (existingIndex !== -1) {
         reviewers[productId][existingIndex].rating = rating;
@@ -622,7 +767,7 @@ function saveReviewer(productId, name, rating) {
     localStorage.setItem('product_reviewers', JSON.stringify(reviewers));
 }
 
-// ===== دوال إدارة المفضلة =====
+// ===== دوال إدارة المفضلة (محلياً - احتياطي) =====
 function isProductFavorite(productId) {
     const favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
     return favorites.includes(productId);
@@ -646,16 +791,17 @@ function getFavorites() {
     return JSON.parse(localStorage.getItem('favorites') || '[]');
 }
 
-function renderProducts(array) {
+// ===== دالة عرض المنتجات (محدثة مع التقييمات من Firebase) =====
+// ===== دالة عرض المنتجات (محسنة للأداء) =====
+async function renderProducts(array) {
     const currentLang = getCurrentLanguage();
     if (!mainProductsContainer) return;
-    mainProductsContainer.innerHTML = "";
     
     if (array.length === 0) {
         mainProductsContainer.innerHTML = `<p style="text-align:center; width:100%; color:#888; padding:20px;">${translations[currentLang].search_no_results}</p>`;
         return;
     }
-
+    
     const dbTranslations = {
         "اكسسوارات دراجات": "Motorbike Accessories",
         "اكسسوارات سيارات": "Car Accessories",
@@ -667,14 +813,14 @@ function renderProducts(array) {
         "صدام سياره": "Car Bumper",
         "زجاج": "Glass"
     };
-
+    
     function translateDbText(text) {
         if (currentLang === "en" && dbTranslations[text]) {
             return dbTranslations[text];
         }
         return text;
     }
-
+    
     const categoriesMap = {};
     array.forEach(product => {
         const catName = product.category || "أخرى";
@@ -683,52 +829,79 @@ function renderProducts(array) {
         }
         categoriesMap[catName].push(product);
     });
-
+    
+    // ✅ جلب التقييمات دفعة واحدة باستخدام Promise.all
+    const allProductsList = [];
     for (let catName in categoriesMap) {
-        const sectionBlock = document.createElement("div");
-        sectionBlock.className = "category-section-block";
-        sectionBlock.style.marginBottom = "20px";
-
+        for (let product of categoriesMap[catName]) {
+            allProductsList.push(product);
+        }
+    }
+    
+    // ✅ جلب جميع التقييمات بالتوازي
+    const ratingPromises = allProductsList.map(async (product) => {
+        const ratingData = await getProductRatingsFromFirebase(product.id);
+        product._rating = ratingData;
+    });
+    
+    await Promise.all(ratingPromises);
+    
+    // ✅ بناء واجهة المنتجات
+    let html = '';
+    for (let catName in categoriesMap) {
         const translatedCatName = translateDbText(catName);
-
-        const sectionHeader = document.createElement("div");
-        sectionHeader.className = "section-header";
-        sectionHeader.innerHTML = `<h3>${translatedCatName}</h3>`;
-
-        const productsGrid = document.createElement("div");
-        productsGrid.className = "products-grid";
-
+        
+        html += `
+            <div class="category-section-block" style="margin-bottom: 20px;">
+                <div class="section-header">
+                    <h3>${translatedCatName}</h3>
+                </div>
+                <div class="products-grid">
+        `;
+        
         categoriesMap[catName].forEach(product => {
-            const prodDiv = document.createElement("div");
-            prodDiv.className = "product";
-            
             const bgImg = product.image1 ? product.image1 : "https://placehold.co/150?text=Zain+Online";
-            
             const translatedProductName = translateDbText(product.name);
-
-            prodDiv.innerHTML = `
-                <div class="img" style="background-image: url('${bgImg}'); background-size: cover; background-position: center;"></div>
-                <p>${translatedProductName}</p>
-                <div class="product-meta">
-                    <span>${product.price} ${translations[currentLang].product_currency}</span>
-                    <div class="product-label">${translations[currentLang].product_label_new}</div>
+            
+            const rating = product._rating || { average: 0, count: 0 };
+            const stars = '⭐'.repeat(Math.min(rating.average, 5));
+            
+            html += `
+                <div class="product" data-id="${product.id}">
+                    <div class="img" style="background-image: url('${bgImg}'); background-size: cover; background-position: center;"></div>
+                    <p>${translatedProductName}</p>
+                    <div class="product-meta">
+                        <span>${product.price} ${translations[currentLang].product_currency}</span>
+                        <div class="product-label">${translations[currentLang].product_label_new}</div>
+                    </div>
+                    <div class="product-rating">
+                        <span class="stars">${stars}</span>
+                        <span class="review-count">(${rating.count})</span>
+                    </div>
                 </div>
             `;
-            
+        });
+        
+        html += `
+                </div>
+            </div>
+        `;
+    }
+    
+    mainProductsContainer.innerHTML = html;
+    
+    // ✅ ربط الأحداث بعد التحميل (باستخدام data-id)
+    document.querySelectorAll('.product').forEach((prodDiv) => {
+        const productId = prodDiv.dataset.id;
+        // البحث عن المنتج في المصفوفة الأصلية
+        const product = array.find(p => p.id === productId);
+        if (product) {
             prodDiv.addEventListener("click", () => {
                 showProductDetails(product);
             });
-            
-            // ===== إضافة حدث الضغط المطول =====
             setupLongPress(prodDiv, product);
-            
-            productsGrid.appendChild(prodDiv);
-        });
-
-        sectionBlock.appendChild(sectionHeader);
-        sectionBlock.appendChild(productsGrid);
-        mainProductsContainer.appendChild(sectionBlock);
-    }
+        }
+    });
 }
 
 
@@ -771,7 +944,6 @@ function showProductDetails(product) {
         s.style.backgroundPosition = "center";
     });
 }
-
 
 document.getElementById("plusQty").addEventListener("click", () => {
     currentQty++;
@@ -1221,109 +1393,79 @@ if (customerChatListContainer) {
         if (snapshot.exists()) {
             snapshot.forEach((childSnapshot) => {
                 const msgData = childSnapshot.val();
-                if (msgData.sender === "admin" && msgData.status !== "read") {
+                if (msgData.sender === "admin" && msgData.status === "unread") {
                     unreadCount++;
                 }
-                if (msgData.message) {
-                    lastMessageText = msgData.message;
+                if (msgData.timestamp) {
+                    const msgDate = new Date(msgData.timestamp);
+                    timeStampText = msgDate.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
                 }
+                lastMessageText = msgData.message || translations[currentLang].chat_default_welcome;
             });
         }
 
-        let shortMessage = lastMessageText.length > 50 ? lastMessageText.substring(0, 50) + "..." : lastMessageText;
-
+        // ✅ بناء واجهة المحادثة
         const chatCard = document.createElement("div");
-        chatCard.className = "premium-chat-card pinned"; 
+        chatCard.className = "premium-chat-card";
+        chatCard.style.cssText = `
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 16px;
+            margin-bottom: 8px;
+            border: 1px solid #f1f2f4;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        `;
         
         chatCard.innerHTML = `
-            <div class="chat-avatar-box">
+            <div class="chat-avatar-box" style="
+                width: 48px; height: 48px; border-radius: 50%;
+                background: linear-gradient(135deg, #FF6600, #ff822e);
+                display: flex; align-items: center; justify-content: center; color: #fff;
+                font-size: 20px; flex-shrink: 0;
+            ">
                 <span class="material-symbols-rounded">support_agent</span>
-                <div class="online-badge"></div>
+                ${unreadCount > 0 ? `<span class="online-badge" style="
+                    position: absolute; bottom: 2px; right: 2px;
+                    width: 12px; height: 12px; background: #10b981;
+                    border-radius: 50%; border: 2px solid #fff;
+                "></span>` : ''}
             </div>
-            <div class="chat-info-content">
-                <div class="chat-info-top">
-                    <h4 class="chat-sender-name">${translations[currentLang].chat_support_name}</h4>
-                    <span class="chat-time-stamp">${timeStampText}</span>
+            <div style="flex: 1; min-width: 0;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <strong style="font-size: 14px; color: #1a1a1a;">${translations[currentLang].chat_support_name}</strong>
+                    <span style="font-size: 10px; color: #9aa0a6;">${timeStampText}</span>
                 </div>
-                <div class="chat-info-bottom">
-                    <p class="chat-last-message">${shortMessage}</p>
-                    <div class="chat-meta-status">
-                        <span class="material-symbols-rounded pin-icon active">push_pin</span>
-                        ${unreadCount > 0 ? `<span class="unread-count-badge">${unreadCount}</span>` : ''}
-                    </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <p style="margin: 0; font-size: 12px; color: #666; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        ${lastMessageText}
+                    </p>
+                    ${unreadCount > 0 ? `
+                        <span style="
+                            background: #FF6600; color: #fff;
+                            font-size: 10px; font-weight: 700;
+                            min-width: 18px; height: 18px;
+                            border-radius: 50%;
+                            display: flex; align-items: center; justify-content: center;
+                            padding: 0 4px;
+                        ">${unreadCount}</span>
+                    ` : ''}
                 </div>
-            </div>
-            <div class="chat-hover-actions">
-                <button class="hover-act-btn pin" title="${translations[currentLang].chat_tooltip_pin}"><span class="material-symbols-rounded">push_pin</span></button>
-                <button class="hover-act-btn delete" title="${translations[currentLang].chat_tooltip_delete}"><span class="material-symbols-rounded">delete</span></button>
             </div>
         `;
-
-        chatCard.addEventListener('click', (e) => {
-            if (e.target.closest('.chat-hover-actions') || e.target.closest('.hover-act-btn')) {
-                return; 
-            }
-            window.location.href = `index2.html?userId=${myUserId}`;
+        
+        chatCard.addEventListener("click", () => {
+            window.location.href = `index6.html`;
         });
-
-        const hoverActions = chatCard.querySelector('.chat-hover-actions');
-        if(hoverActions) {
-            hoverActions.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        }
-
+        
         customerChatListContainer.appendChild(chatCard);
     });
 }
 
-// تفعيل قسم الدردشة تلقائياً عند الرجوع من صفحة المحادثة
-document.addEventListener("DOMContentLoaded", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const targetTab = urlParams.get('tab');
+// ===== تحميل السلة من Firebase عند بدء التشغيل =====
+loadCartFromFirebase();
 
-    if (targetTab === 'chat') {
-        document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-        
-        const chatSection = document.getElementById('chat');
-        if (chatSection) chatSection.classList.add('active');
-
-        document.querySelectorAll('.bottom-nav .nav-btn').forEach(btn => {
-            btn.classList.remove('active');
-            if (btn.getAttribute('data-page') === 'chat') {
-                btn.classList.add('active');
-            }
-        });
-    }
-    
-    // تحميل السلة من localStorage عند بدء التشغيل
-    loadCartFromStorage();
-});
-
-// ===== إصلاح أسماء الأزرار بعد تحميل الصفحة =====
-document.addEventListener('DOMContentLoaded', function() {
-    const specialBtn = document.querySelector('.nav-btn-special');
-    if (specialBtn) {
-        specialBtn.style.pointerEvents = 'auto';
-    }
-    
-    const navBtns = document.querySelectorAll('.nav-btn:not(.nav-btn-special)');
-    const navTexts = ['الرئيسية', 'الدردشة', 'العربة', 'الإعدادات'];
-    
-    navBtns.forEach((btn, index) => {
-        const spans = btn.querySelectorAll('span');
-        if (spans.length >= 2) {
-            const textSpan = spans[spans.length - 1];
-            if (textSpan && !textSpan.classList.contains('material-symbols-rounded')) {
-                if (navTexts[index]) {
-                    textSpan.textContent = navTexts[index];
-                }
-            }
-        }
-    });
-    
-    const specialLabel = document.querySelector('.special-label');
-    if (specialLabel) {
-        specialLabel.textContent = 'حساب جديد';
-    }
-});
+console.log('✅ تم تحميل script.js بنجاح مع ربط Firebase للتقييمات والمفضلة والسلة');

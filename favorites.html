@@ -86,6 +86,7 @@
             position: relative;
         }
 
+        /* ===== زر الإزالة ===== */
         .fav-remove-btn {
             position: absolute;
             top: 8px;
@@ -103,6 +104,7 @@
             transition: all 0.2s ease;
             backdrop-filter: blur(4px);
             box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3);
+            z-index: 5;
         }
         .fav-remove-btn:active {
             transform: scale(0.85);
@@ -111,6 +113,7 @@
             font-size: 18px;
         }
 
+        /* ===== معلومات المنتج ===== */
         .fav-product-info {
             padding: 12px 14px 14px;
         }
@@ -136,6 +139,22 @@
             color: #999;
         }
 
+        /* ===== التقييم ===== */
+        .fav-product-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+        .fav-product-rating .stars {
+            color: #f59f00;
+        }
+        .fav-product-rating .count {
+            color: #888;
+        }
+
+        /* ===== الأزرار ===== */
         .fav-actions {
             display: flex;
             gap: 8px;
@@ -165,9 +184,14 @@
         .btn-add-cart.added {
             background: #28a745;
         }
+        .btn-add-cart:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
         .btn-view-details {
             background: #f0f1f4;
             color: #555;
+            flex: 0.5;
         }
 
         /* ===== الحالة الفارغة ===== */
@@ -251,6 +275,33 @@
             font-weight: 400;
         }
 
+        /* ===== تحميل ===== */
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            gap: 16px;
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f0f0f0;
+            border-top: 4px solid #FF6600;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            font-size: 14px;
+            color: #888;
+            font-family: 'Cairo', sans-serif;
+        }
+
         /* ===== التجاوب ===== */
         @media (max-width: 480px) {
             .favorites-grid {
@@ -302,10 +353,14 @@
         </a>
     </div>
 
-    <!-- ===== شبكة المنتجات ===== -->
-    <div class="favorites-grid" id="favoritesGrid">
-        <!-- سيتم عرض المنتجات هنا عبر JavaScript -->
+    <!-- ===== تحميل ===== -->
+    <div class="loading-container" id="loadingContainer">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">جاري تحميل المفضلة...</div>
     </div>
+
+    <!-- ===== شبكة المنتجات ===== -->
+    <div class="favorites-grid" id="favoritesGrid" style="display: none;"></div>
 
     <!-- ===== حالة فارغة ===== -->
     <div class="empty-favorites" id="emptyFavorites" style="display: none;">
@@ -324,7 +379,7 @@
     <!-- ===== ربط Firebase ===== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, get, remove, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAUmiSv1NdOWCZhJCGab6in028MPhNjFgE",
@@ -336,66 +391,143 @@
         const db = getDatabase(app);
 
         let allProducts = [];
+        let myUserId = localStorage.getItem('zain_user_id');
 
         // ===== جلب المنتجات من Firebase =====
         async function loadProducts() {
-            const snapshot = await get(ref(db, 'products'));
-            if (snapshot.exists()) {
-                const products = [];
-                snapshot.forEach((child) => {
-                    const item = child.val();
-                    item.id = child.key;
-                    products.push(item);
-                });
-                allProducts = products;
-                renderFavorites();
+            try {
+                const snapshot = await get(ref(db, 'products'));
+                if (snapshot.exists()) {
+                    const products = [];
+                    snapshot.forEach((child) => {
+                        const item = child.val();
+                        item.id = child.key;
+                        products.push(item);
+                    });
+                    allProducts = products;
+                }
+            } catch (error) {
+                console.error('خطأ في جلب المنتجات:', error);
+                showToast('حدث خطأ في تحميل المنتجات', 'error');
             }
         }
 
-        // ===== دوال المفضلة =====
-        function getFavorites() {
-            return JSON.parse(localStorage.getItem('favorites') || '[]');
+        // ===== جلب المفضلة من Firebase =====
+        async function getFavoritesFromFirebase() {
+            if (!myUserId) {
+                // إذا لم يكن هناك مستخدم، استخدم localStorage
+                return JSON.parse(localStorage.getItem('favorites') || '[]');
+            }
+            
+            try {
+                const favRef = ref(db, `favorites/${myUserId}`);
+                const snapshot = await get(favRef);
+                if (snapshot.exists()) {
+                    const favorites = [];
+                    snapshot.forEach((child) => {
+                        favorites.push(child.key);
+                    });
+                    return favorites;
+                }
+                return [];
+            } catch (error) {
+                console.error('خطأ في جلب المفضلة من Firebase:', error);
+                return JSON.parse(localStorage.getItem('favorites') || '[]');
+            }
         }
 
-        function isProductFavorite(productId) {
-            return getFavorites().includes(productId);
+        // ===== إزالة من المفضلة في Firebase =====
+        async function removeFavoriteFromFirebase(productId) {
+            if (!myUserId) {
+                // localStorage
+                let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+                favorites = favorites.filter(id => id !== productId);
+                localStorage.setItem('favorites', JSON.stringify(favorites));
+                return true;
+            }
+            
+            try {
+                const favRef = ref(db, `favorites/${myUserId}/${productId}`);
+                await remove(favRef);
+                return true;
+            } catch (error) {
+                console.error('خطأ في إزالة المفضلة:', error);
+                return false;
+            }
         }
 
-        function removeFavorite(productId) {
-            let favorites = getFavorites();
-            favorites = favorites.filter(id => id !== productId);
-            localStorage.setItem('favorites', JSON.stringify(favorites));
+        // ===== جلب التقييمات من Firebase =====
+        async function getProductRating(productId) {
+            try {
+                const ratingRef = ref(db, `ratings/${productId}`);
+                const snapshot = await get(ratingRef);
+                if (!snapshot.exists()) {
+                    return { average: 0, count: 0 };
+                }
+                
+                const ratings = snapshot.val();
+                let total = 0;
+                let count = 0;
+                
+                for (const [userId, data] of Object.entries(ratings)) {
+                    total += data.rating;
+                    count++;
+                }
+                
+                return {
+                    average: Math.round(total / count),
+                    count: count
+                };
+            } catch (error) {
+                return { average: 0, count: 0 };
+            }
         }
 
         // ===== عرض المفضلة =====
-        function renderFavorites() {
+        async function renderFavorites() {
             const grid = document.getElementById('favoritesGrid');
             const empty = document.getElementById('emptyFavorites');
             const countEl = document.getElementById('favCount');
+            const loading = document.getElementById('loadingContainer');
             
-            const favorites = getFavorites();
+            // إظهار التحميل
+            loading.style.display = 'flex';
+            grid.style.display = 'none';
+            empty.style.display = 'none';
+            
+            // جلب المفضلة
+            const favorites = await getFavoritesFromFirebase();
             
             // تحديث العدد
             countEl.textContent = `(${favorites.length})`;
 
             if (favorites.length === 0) {
-                grid.innerHTML = '';
+                loading.style.display = 'none';
+                grid.style.display = 'none';
                 empty.style.display = 'block';
                 return;
             }
-            empty.style.display = 'none';
 
             // تصفية المنتجات المفضلة
             const favProducts = allProducts.filter(p => favorites.includes(p.id));
 
             if (favProducts.length === 0) {
-                grid.innerHTML = '';
+                loading.style.display = 'none';
+                grid.style.display = 'none';
                 empty.style.display = 'block';
                 return;
             }
 
+            loading.style.display = 'none';
+            grid.style.display = 'grid';
+            empty.style.display = 'none';
+
             let html = '';
-            favProducts.forEach(product => {
+            for (const product of favProducts) {
+                // جلب التقييم
+                const rating = await getProductRating(product.id);
+                const stars = '⭐'.repeat(Math.min(rating.average, 5));
+                
                 const imgUrl = product.image1 || 'https://placehold.co/300x200?text=Zain+Online';
                 html += `
                     <div class="fav-product-card" data-id="${product.id}">
@@ -407,6 +539,10 @@
                         <div class="fav-product-info">
                             <h4>${product.name}</h4>
                             <div class="fav-product-price">${product.price} <small>ريال يمني</small></div>
+                            <div class="fav-product-rating">
+                                <span class="stars">${stars}</span>
+                                <span class="count">(${rating.count})</span>
+                            </div>
                             <div class="fav-actions">
                                 <button class="btn-add-cart" onclick="window.addToCartFromFav('${product.id}')">
                                     <span class="material-symbols-rounded">shopping_cart</span>
@@ -419,12 +555,12 @@
                         </div>
                     </div>
                 `;
-            });
+            }
 
             grid.innerHTML = html;
         }
 
-        // ===== إضافة إلى السلة من المفضلة =====
+        // ===== إضافة إلى السلة =====
         window.addToCartFromFav = function(productId) {
             const product = allProducts.find(p => p.id === productId);
             if (!product) {
@@ -435,7 +571,6 @@
             // جلب السلة الحالية
             let cart = JSON.parse(localStorage.getItem('zain_cart') || '[]');
             
-            // التحقق إذا المنتج موجود مسبقاً
             const existingIndex = cart.findIndex(item => item.id === productId);
             if (existingIndex !== -1) {
                 cart[existingIndex].qty += 1;
@@ -460,9 +595,11 @@
                     if (btn) {
                         btn.innerHTML = `<span class="material-symbols-rounded">check</span> تمت الإضافة`;
                         btn.classList.add('added');
+                        btn.disabled = true;
                         setTimeout(() => {
                             btn.innerHTML = `<span class="material-symbols-rounded">shopping_cart</span> أضف للسلة`;
                             btn.classList.remove('added');
+                            btn.disabled = false;
                         }, 2000);
                     }
                 }
@@ -470,16 +607,20 @@
         };
 
         // ===== إزالة من المفضلة =====
-        window.removeFromFavorites = function(productId) {
+        window.removeFromFavorites = async function(productId) {
             const product = allProducts.find(p => p.id === productId);
-            removeFavorite(productId);
-            renderFavorites();
-            showToast(`🗑️ تم إزالة "${product?.name || 'المنتج'}" من المفضلة`, 'warning');
+            const success = await removeFavoriteFromFirebase(productId);
+            
+            if (success) {
+                renderFavorites();
+                showToast(`🗑️ تم إزالة "${product?.name || 'المنتج'}" من المفضلة`, 'warning');
+            } else {
+                showToast('حدث خطأ في إزالة المنتج', 'error');
+            }
         };
 
         // ===== عرض تفاصيل المنتج =====
         window.viewProduct = function(productId) {
-            // حفظ معرف المنتج في localStorage للرجوع إليه
             localStorage.setItem('view_product_id', productId);
             window.location.href = 'index.html?view=details';
         };
@@ -514,13 +655,13 @@
         // ===== تحميل الصفحة =====
         document.addEventListener('DOMContentLoaded', async () => {
             await loadProducts();
+            await renderFavorites();
         });
 
         // ===== جعل الدوال متاحة عالمياً =====
         window.renderFavorites = renderFavorites;
-        window.getFavorites = getFavorites;
-        window.removeFavorite = removeFavorite;
-        window.isProductFavorite = isProductFavorite;
+        window.getFavoritesFromFirebase = getFavoritesFromFirebase;
+        window.removeFavoriteFromFirebase = removeFavoriteFromFirebase;
     </script>
 
 </body>
